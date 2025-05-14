@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rock az</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
@@ -36,10 +36,11 @@
             background-color: #fff;
             border-radius: 50%;
             animation: twinkle var(--duration) infinite ease-in-out;
+            will-change: transform, opacity;
+            transform: translateZ(0);
         }
 
         @keyframes twinkle {
-
             0%,
             100% {
                 opacity: 0.2;
@@ -58,14 +59,16 @@
             justify-content: center;
             align-items: center;
             height: 100%;
-            padding: 2rem;
+            padding: 2rem 1rem;
             text-align: center;
             transform-style: preserve-3d;
+            min-height: 100vh;
         }
 
         .logo {
-            width: 150px;
-            height: 150px;
+            width: 100%;
+            max-width: 150px;
+            height: auto;
             margin-bottom: 2rem;
             filter: drop-shadow(0 0 20px rgba(100, 149, 237, 0.7));
             transition: all 0.5s ease;
@@ -73,7 +76,6 @@
         }
 
         @keyframes float {
-
             0%,
             100% {
                 transform: translateY(0) rotate(0deg);
@@ -85,7 +87,7 @@
         }
 
         h1 {
-            font-size: 3.5rem;
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
             margin-bottom: 1rem;
             background: linear-gradient(90deg, #ff8a00, #e52e71, #4f00bc);
             -webkit-background-clip: text;
@@ -95,7 +97,7 @@
         }
 
         p {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 3vw, 1.2rem);
             max-width: 600px;
             margin-bottom: 2.5rem;
             line-height: 1.6;
@@ -117,6 +119,8 @@
             transition: all 0.3s ease;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
             z-index: 1;
+            white-space: nowrap;
+            min-width: 150px;
         }
 
         .btn:hover {
@@ -163,7 +167,7 @@
             opacity: 0.7;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 576px) {
             h1 {
                 font-size: 2.5rem;
             }
@@ -176,6 +180,28 @@
             .logo {
                 width: 120px;
                 height: 120px;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .btn {
+                padding: 0.8rem 2rem;
+                font-size: 1rem;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                padding: 3rem;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 1000px;
+                margin: 0 auto;
             }
         }
     </style>
@@ -198,7 +224,7 @@
 
     <script>
         const stars = document.getElementById('stars');
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 150; i++) {
             const star = document.createElement('div');
             star.classList.add('star');
             star.style.width = `${Math.random() * 3 + 1}px`;
@@ -225,7 +251,7 @@
                 particle.style.pointerEvents = 'none';
                 particle.style.zIndex = '-1';
 
-                const size = Math.random() * 10 + 5;
+                const size = Math.random() * 8 + 4;
                 particle.style.transform = `scale(${size / 10})`;
 
                 particles.appendChild(particle);
