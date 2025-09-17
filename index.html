@@ -1,284 +1,160 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rock az</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>add-qwq (Rockaz) - GitHub Profile</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            height: 100vh;
-            overflow: hidden;
-            color: #fff;
-            perspective: 1000px;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            background-color: #f9fafb;
+            color: #374151;
+            line-height: 1.6;
         }
 
-        .stars {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
-
-        .star {
-            position: absolute;
-            background-color: #fff;
-            border-radius: 50%;
-            animation: twinkle var(--duration) infinite ease-in-out;
-            will-change: transform, opacity;
-            transform: translateZ(0);
-        }
-
-        @keyframes twinkle {
-            0%,
-            100% {
-                opacity: 0.2;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
-
-        .container {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            padding: 2rem 1rem;
-            text-align: center;
-            transform-style: preserve-3d;
-            min-height: 100vh;
-        }
-
-        .logo {
-            width: 100%;
-            max-width: 150px;
-            height: auto;
-            margin-bottom: 2rem;
-            filter: drop-shadow(0 0 20px rgba(100, 149, 237, 0.7));
-            transition: all 0.5s ease;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%,
-            100% {
-                transform: translateY(0) rotate(0deg);
-            }
-
-            50% {
-                transform: translateY(-20px) rotate(5deg);
-            }
+        h1,
+        h3,
+        h4 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+            font-weight: 600;
         }
 
         h1 {
-            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-size: 1.8rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            margin-top: 2rem;
+            display: inline-block;
+            padding-left: 0.8rem;
+            border-left: 3px solid #3b82f6;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin: 1rem 0;
+        }
+
+        ul {
+            list-style-type: disc;
+            margin-left: 1.8rem;
             margin-bottom: 1rem;
-            background: linear-gradient(90deg, #ff8a00, #e52e71, #4f00bc);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        li strong {
+            color: #2563eb;
+        }
+
+        li em {
+            color: #6b7280;
         }
 
         p {
-            font-size: clamp(1rem, 3vw, 1.2rem);
-            max-width: 600px;
-            margin-bottom: 2.5rem;
-            line-height: 1.6;
-            opacity: 0.9;
+            margin-bottom: 1rem;
+            color: #4b5563;
         }
 
-        .btn {
-            position: relative;
-            display: inline-block;
-            padding: 1rem 2.5rem;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #fff;
-            background: linear-gradient(45deg, #4f00bc, #8e2de2);
+        a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        hr {
             border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            z-index: 1;
-            white-space: nowrap;
-            min-width: 150px;
+            border-top: 1px solid #e5e7eb;
+            margin: 2.5rem 0;
         }
 
-        .btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: 0.5s;
-            z-index: -1;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        .particles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        footer {
-            position: absolute;
-            bottom: 2rem;
-            width: 100%;
-            text-align: center;
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-
-        @media (max-width: 576px) {
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            p {
-                font-size: 1rem;
-                padding: 0 1rem;
-            }
-
-            .logo {
-                width: 120px;
-                height: 120px;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-
-            .btn {
-                padding: 0.8rem 2rem;
-                font-size: 1rem;
-            }
-        }
-
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .container {
-                padding: 3rem;
-            }
-        }
-
-        @media (min-width: 1200px) {
-            .container {
-                max-width: 1000px;
-                margin: 0 auto;
-            }
+        em.note {
+            display: block;
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            color: #6b7280;
+            font-size: 0.95rem;
         }
     </style>
 </head>
 
 <body>
-    <div class="stars" id="stars"></div>
-    <div class="particles" id="particles"></div>
+    <h1>👋 Hello! I'm [add-qwq], but you can also call me [Rockaz].</h1>
 
-    <div class="container">
-        <img src="favicon.ico" alt="Rockaz Logo" class="logo">
-        <h1>欢迎</h1>
-        <p>探索无限可能，点击进入Rock的奇幻世界</p>
-        <a href="https://rockaz.top" class="btn" style="text-decoration: none;">进去看看</a>
+    <p>
+        <img src="https://github-readme-stats.vercel.app/api?username=add-qwq&show_icons=true&locale=en&count_private=true&hide=prs"
+            alt="add-qwq's GitHub stats" loading="lazy">
+    </p>
 
-        <footer>
-            © 2025 Rock的奇幻世界
-        </footer>
-    </div>
+    <h3>Currently Learning:</h3>
+    <ul>
+        <li><strong>PHP</strong> <em>(Web backend development)</em></li>
+        <li><strong>Python</strong> <em>(Scripting tools & small application development)</em></li>
+        <li><strong>C#</strong> <em>(First steps toward game development)</em></li>
+        <li><strong>JavaScript</strong> <em>(Making web pages interactive)</em></li>
+        <li><strong>CSS/HTML</strong> <em>(Building beautiful web foundations)</em></li>
+    </ul>
 
-    <script>
-        const stars = document.getElementById('stars');
-        for (let i = 0; i < 150; i++) {
-            const star = document.createElement('div');
-            star.classList.add('star');
-            star.style.width = `${Math.random() * 3 + 1}px`;
-            star.style.height = star.style.width;
-            star.style.left = `${Math.random() * 100}%`;
-            star.style.top = `${Math.random() * 100}%`;
-            star.style.opacity = Math.random();
-            star.style.setProperty('--duration', `${Math.random() * 5 + 3}s`);
-            stars.appendChild(star);
-        }
+    <h3>Goals:</h3>
+    <p>I aim to master these skills to:</p>
+    <ul>
+        <li>Build powerful and secure web backends with PHP</li>
+        <li>Automate tasks and create useful tools with Python</li>
+        <li>Bring game ideas to life with C#</li>
+        <li>Design beautiful web interfaces with JS/CSS/HTML</li>
+    </ul>
 
-        const particles = document.getElementById('particles');
-        document.addEventListener('mousemove', (e) => {
-            for (let i = 0; i < 3; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                particle.style.position = 'absolute';
-                particle.style.width = '6px';
-                particle.style.height = '6px';
-                particle.style.backgroundColor = `hsl(${Math.random() * 60 + 200}, 100%, 70%)`;
-                particle.style.borderRadius = '50%';
-                particle.style.left = `${e.clientX}px`;
-                particle.style.top = `${e.clientY}px`;
-                particle.style.pointerEvents = 'none';
-                particle.style.zIndex = '-1';
+    <h3>Why I code?</h3>
+    <p>I admire developers who turn their imagination into reality – and I’m striving to become one too.</p>
 
-                const size = Math.random() * 8 + 4;
-                particle.style.transform = `scale(${size / 10})`;
+    <h3>Why open source?</h3>
+    <p>I look forward to contributing to the open-source community and learning from amazing developers worldwide. Let’s
+        build something meaningful together!</p>
 
-                particles.appendChild(particle);
+    <h3>The open-source community is great</h3>
+    <p>Some open-source projects have been very helpful to me. Feel free to connect or check out my projects!</p>
 
-                setTimeout(() => {
-                    particle.style.transition = 'all 0.5s ease-out';
-                    particle.style.opacity = '0';
-                    particle.style.transform = `translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) scale(0)`;
+    <hr>
 
-                    setTimeout(() => {
-                        particle.remove();
-                    }, 500);
-                }, 50);
-            }
-        });
+    <h3>My Website</h3>
+    <ul>
+        <li><strong>https://www.rockaz.top/</strong></li>
+    </ul>
 
-        const container = document.querySelector('.container');
-        document.addEventListener('mousemove', (e) => {
-            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
-            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
-            container.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-        });
-
-        document.addEventListener('mouseleave', () => {
-            container.style.transform = 'rotateY(0deg) rotateX(0deg)';
-        });
-    </script>
+    <h4>Quick Project Demo</h4>
+    <p>Want to preview my web project without deploying it yourself?</p>
+    <p>🔗 <a href="https://www.rockaz.top/GitHub-Project-Demo/" target="_blank">View Demo</a></p>
+    <em class="note">Note: The website server is located in China, and for security defense purposes, it has blocked all
+        traffic outside China.</em>
 </body>
 
 </html>
