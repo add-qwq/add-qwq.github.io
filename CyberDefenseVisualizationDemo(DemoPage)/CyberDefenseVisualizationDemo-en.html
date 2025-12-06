@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<!--Do not use the code on this page without permission-->
+<!--Copyright of this page belongs to the developer of Rockaz.top-->
+<!--The code on this page has been open-sourced on GitHub and is protected by open-source agreements-->
+<!--We recommend that if you need the code for this page, please download it from the GitHub page and use it under the rules of the Apache-2.0 license, rather than stealing-->
+<!--
+    GitHub repository for this page: https://github.com/add-qwq/CyberDefenseVisualizationDemo
+-->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Defense Visualization Demo</title>
+    <link rel="stylesheet" href="CyberDefenseVisualizationDemo.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="title">CyberDefenseVisualizationDemo</div>
+        <div class="controls">
+            <button onclick="setMode('normal')" class="active" id="btn-normal" data-tooltip="Normal traffic mode, simulating regular user access">Normal
+                Traffic</button>
+            <button onclick="setMode('ddos')" class="danger" id="btn-ddos" data-tooltip="Distributed Denial of Service attack, overwhelming server bandwidth with massive traffic">DDoS
+                (Flood Attack)</button>
+            <button onclick="setMode('cc')" class="danger" id="btn-cc"
+                data-tooltip="Regular CC attack, HTTP(S)-Flood, simulating massive user requests to consume server CPU resources">CC-Flood(Resource Exhaustion)</button>
+            <button onclick="setMode('bypass')" class="danger" id="btn-bypass"
+                data-tooltip="CC attack bypassing protection, using Bypass techniques to bypass WAF detection">CC-Bypass(Request Spoofing)</button>
+            <div style="width:1px; background:#444; margin:0 5px;"></div>
+            <button onclick="toggleEducationPanel()" id="btn-education" data-tooltip="Show/hide page instructions and basic educational content">Instructions</button>
+            <button onclick="restartServer()" id="btn-restart" class="danger">Restart Server</button>
+            <button onclick="toggleWAF()" id="btn-waf">CDN-WAF: Off</button>
+            <button onclick="toggleTheme()" id="btn-theme">☀️ Toggle Theme</button>
+        </div>
+    </header>
+
+    <div id="vis-container">
+        <canvas id="simCanvas"></canvas>
+
+        <div id="education-panel" class="hud-panel">
+            <div class="education-title">Page Instructions & Basic Educational Content</div>
+
+            <div class="education-section">
+                <div class="education-subtitle">DISCLAIMER</div>
+                <div class="education-text">• This page simulates a simple network attack and defense scenario, demonstrating the impact of different attack methods on servers. All content is simulated data</div>
+                <div class="education-text">• By simulating scenarios such as normal business traffic, DDoS attacks, and CC attacks, users can intuitively understand the hazards of different attack methods and protective measures</div>
+                <div class="education-text">• The page is for learning and demonstration purposes only and does not represent any actual network attack and defense scenario</div>
+                <div class="education-text">• The educational content is for learning reference only, suitable for basic learners, and should not be used as professional advice</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">Quick Start Guide</div>
+                <div class="education-text">• Click on different attack mode buttons to observe changes in server CPU/bandwidth/connections</div>
+                <div class="education-text">• After enabling "CDN-WAF", compare the effect of attack interception (different attacks have different interception rates)</div>
+                <div class="education-text">• After the server crashes, click "Restart Server" to reset all states</div>
+                <div class="education-text">• Switch "Light/Dark Theme" to suit different visual habits</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">Interactive Demo Explanation</div>
+                <div class="education-text">• <span style="color:var(--term-green)">Green</span> dots: Normal user requests</div>
+                <div class="education-text">• <span style="color:var(--term-red)">Red</span> dots: DDoS attack packets</div>
+                <div class="education-text">• <span style="color:var(--term-yellow)">Yellow</span> dots: CC attack requests</div>
+                <div class="education-text">• <span style="color:var(--term-blue)">Blue</span> barrier: WAF protection wall</div>
+                <div class="education-text">• Dot explosion: Request intercepted by WAF or reaching server</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">1. Normal Traffic</div>
+                <div class="education-text">• Characteristics: Low request frequency, small resource consumption per request, scattered and legitimate sources</div>
+                <div class="education-text">• Impact on server: CPU/bandwidth/connections remain at low levels, server health is stable</div>
+                <div class="education-note">Note: A reasonable amount of requests will not put excessive pressure on the server. When necessary, consider CDN distribution and load balancing</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">2. DDoS Attack (Distributed Denial of Service)</div>
+                <div class="education-text">• Principle: Using a large botnet to send massive data packets, exhausting server bandwidth</div>
+                <div class="education-text">• Characteristics: Sudden traffic increase, large packet size, fast attack speed, belonging to network layer attacks</div>
+                <div class="education-text">• Harm: Server bandwidth is saturated, legitimate requests cannot reach, manifested as server inaccessibility from the public network</div>
+                <div class="education-note">Protection methods: CDN traffic cleaning, blackhole routing, DDoS high-defense IP</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">3. Regular CC Attack (HTTP(s)-Flood)</div>
+                <div class="education-text">• Principle: Simulating a large number of legitimate users to send HTTP requests, consuming server CPU/memory resources</div>
+                <div class="education-text">• Characteristics: Many requests, high CPU consumption per request (such as dynamic interfaces or complex queries), belonging to application layer attacks</div>
+                <div class="education-text">• Harm: High server CPU usage, unable to process normal requests, response timeout</div>
+                <div class="education-note">Protection methods: Request rate limiting, captcha, human-machine verification, WAF rule interception</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">4. Bypass (CC Attack Bypassing Protection)</div>
+                <div class="education-text">• Principle: Bypassing WAF detection by disguising request characteristics or legitimate behaviors (such as forging legitimate User-Agent, IP spoofing, cookie replay)</div>
+                <div class="education-text">• Characteristics: Attack packets are disguised as normal requests, difficult to identify initially, and will gradually expose characteristics</div>
+                <div class="education-text">• Harm: Bypassing basic protection rules, continuously consuming server resources, with stronger concealment</div>
+                <div class="education-note">Protection methods: Behavioral analysis, feature recognition, JS challenges, reasonable WAF configuration</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">5. WAF Protection Provided by CDN</div>
+                <div class="education-text">• Function: Deployed at the CDN end, can filter malicious requests and protect Web application security</div>
+                <div class="education-text">• Protection capability: With reasonable configuration, can intercept most DDoS/CC attacks</div>
+                <div class="education-text">• Advantages and disadvantages compared to local WAF: Multi-edge node protection, low latency, stronger DDoS protection capability, but slightly less configuration flexibility</div>
+                <div class="education-text">• You can click the "CDN-WAF" button on this page to roughly observe the difference in interception effects of different attacks</div>
+                <div class="education-note">Note: WAF is not omnipotent! WAF is not omnipotent! In actual scenarios, it is necessary to combine multiple protection methods to build a complete security system!</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">6. Server Status Indicators on This Page</div>
+                <div class="education-text">• CPU load: Reflects the computing pressure of the server to process requests, mainly affected by CC attacks</div>
+                <div class="education-text">• Bandwidth usage: Reflects network transmission pressure, mainly affected by DDoS attacks</div>
+                <div class="education-text">• Concurrent connections: The number of connections established with the server at the same time, exceeding the limit will cause new requests to fail to establish</div>
+                <div class="education-note">Tip: Server status indicators are for reference only. The actual situation is much more complex (such as memory, disk IO, database pressure, etc.)</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">7. Supplementary Cognition: Core Logic of Attack and Defense</div>
+                <div class="education-text">• Nature of attack: Consuming limited resources of the target (bandwidth/CPU/connections) to make it unable to provide normal services</div>
+                <div class="education-text">• Core of protection: Identifying malicious traffic (features/behavior) + isolation/interception + expanding anti-attack resources</div>
+                <div class="education-text">• Limitations of this demo: Does not simulate real scenarios such as mixed attacks, multi-layer protection, and elastic scaling; does not simulate Web application layer attacks (such as SQL injection, XSS, etc.)</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">8. Basic Network Layer Cognition</div>
+                <div class="education-text">• Application layer (L7): Processes protocols such as HTTP/HTTPS, responsible for business logic and data exchange</div>
+                <div class="education-text">• Transport layer (L4): Responsible for end-to-end communication, such as TCP/UDP</div>
+                <div class="education-text">• Reference article: <a href="https://www.rockaz.top/blog/post_detail?id=21"
+                        target="_blank">Regarding the OSI seven layer model: Where have all the other layers gone except for L4 and L7?</a></div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">9. References / Recommended Reading</div>
+                <div class="education-text">• Cloudflare Learning Center: <a
+                        href="https://www.cloudflare.com/learning/ddos/what-is-a-ddos-attack/"
+                        target="_blank">What is a DDoS attack?</a></div>
+                <div class="education-text">• Cloudflare Learning Center: <a
+                        href="https://www.cloudflare.com/learning/ddos/ip-spoofing/" target="_blank">What is IP spoofing?</a></div>
+                <div class="education-text">• Cloudflare Learning Center: <a
+                        href="https://www.cloudflare-cn.com/learning/ddos/how-to-prevent-ddos-attacks/"
+                        target="_blank">How to prevent DDoS attacks?</a></div>
+                <div class="education-text">• Cloudflare Learning Center: <a
+                        href="https://www.cloudflare-cn.com/learning/cdn/what-is-a-cdn/"
+                        target="_blank">What is a Content Delivery Network (CDN)?</a></div>
+                <div class="education-text">• Cloudflare Learning Center: <a
+                        href="https://www.cloudflare-cn.com/learning/security/what-is-web-application-security/"
+                        target="_blank">What is Web application security?</a></div>
+                <div class="education-text">• Tencent Cloud Developer Community: <a href="https://cloud.tencent.com/developer/article/2452860"
+                        target="_blank">CC attack, a special type of DDoS attack</a></div>
+                <div class="education-text">• Alibaba Cloud Documentation: <a
+                        href="https://help.aliyun.com/zh/waf/web-application-firewall-3-0/use-cases/cc-attack-protection-best-practices"
+                        target="_blank">CC attack protection best practices</a></div>
+                <div class="education-text">• CSDN Blog: <a
+                        href="https://blog.csdn.net/m0_51330619/article/details/120422150"
+                        target="_blank">CC attack - brute force cracking/scanning directories to bypass Safedog WAF</a></div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">10. Simple Quiz</div>
+                <div class="education-text" style="margin-bottom: 12px;">Test your basic knowledge with the following questions (each is a single choice):</div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">1. Which of the following most accurately describes the core difference between DDoS and CC attacks?
+                    </div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="a" onclick="checkAnswer('q1', this)"> A.
+                            DDoS only attacks bandwidth, CC only attacks CPU
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="b" onclick="checkAnswer('q1', this)"> B.
+                            DDoS focuses on network layer resource exhaustion, CC focuses on application layer resource consumption
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="c" onclick="checkAnswer('q1', this)"> C.
+                            DDoS is manual attack, CC is automated attack
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="d" onclick="checkAnswer('q1', this)"> D.
+                            DDoS can be intercepted by WAF, CC cannot be intercepted
+                        </label>
+                    </div>
+                    <div id="q1-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">2. What is the core characteristic of CC-Bypass (CC attack bypassing protection)?
+                    </div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="a" onclick="checkAnswer('q2', this)"> A. Attack traffic is much larger than ordinary CC attacks
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="b" onclick="checkAnswer('q2', this)"> B.
+                            Disguising request characteristics to evade WAF basic rule detection
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="c" onclick="checkAnswer('q2', this)"> C.
+                            Directly attacking server hardware, not at the network level
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="d" onclick="checkAnswer('q2', this)"> D. Only effective when WAF is turned off
+                        </label>
+                    </div>
+                    <div id="q2-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">3. Which of the following protection methods is most effective against DDoS attacks?</div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="a" onclick="checkAnswer('q3', this)"> A. Increasing server CPU cores
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="b" onclick="checkAnswer('q3', this)"> B. Deploying CDN traffic cleaning + high-defense IP
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="c" onclick="checkAnswer('q3', this)"> C. Closing unnecessary server ports
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="d" onclick="checkAnswer('q3', this)"> D. Relying solely on application layer WAF rules
+                        </label>
+                    </div>
+                    <div id="q3-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">4.
+                        Server CPU continues to be above 90% load and cannot be relieved for a long time, most likely caused by which attack?</div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="a" onclick="checkAnswer('q4', this)"> A. High-traffic DDoS attack
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="b" onclick="checkAnswer('q4', this)"> B. CC/CC-Bypass attack
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="c" onclick="checkAnswer('q4', this)"> C. Database injection attack
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="d" onclick="checkAnswer('q4', this)"> D. Port scanning attack
+                        </label>
+                    </div>
+                    <div id="q4-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">5. Regarding the WAF protection logic of CDN, which statement is incorrect?
+                    </div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="a" onclick="checkAnswer('q5', this)"> A.
+                            WAF can filter malicious requests in advance at CDN edge nodes
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="b" onclick="checkAnswer('q5', this)"> B.
+                            CDN can disperse origin server pressure and reduce the impact of DDoS/CC attacks
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="c" onclick="checkAnswer('q5', this)"> C.
+                            Enabling WAF can 100% intercept all CC-Bypass attacks
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="d" onclick="checkAnswer('q5', this)"> D.
+                            WAF has different protection capabilities against network layer and application layer attacks
+                        </label>
+                    </div>
+                    <div id="q5-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin-top: 15px; padding: 10px; border-top: 1px solid var(--term-blue);">
+                    <button onclick="calculateScore()" style="padding: 6px 12px; font-size: 12px;">Calculate Total Score🤓</button>
+                    <div id="score-result" style="margin-top: 8px; font-size: 13px; color: var(--term-yellow);"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="server-hud" class="hud-panel">
+            <div
+                style="border-bottom:1px solid var(--term-blue); margin-bottom:10px; padding-bottom:5px; color:var(--term-blue);">
+                Server Status Panel</div>
+
+            <div class="meter-row"
+                style="border-bottom:1.7px dashed var(--ui-border); padding-bottom:5px; margin-bottom:5px;">
+                <div class="meter-label">
+                    <span>Requests</span>
+                    <span id="txt-total-req" style="color:var(--term-blue); font-weight:bold;">0</span>
+                </div>
+                <div class="meter-label">
+                    <span>Traffic</span>
+                    <span id="txt-total-vol" style="color:var(--term-red); font-weight:bold;">0 GB</span>
+                </div>
+            </div>
+
+            <div class="meter-row">
+                <div class="meter-label"><span>CPU Load</span><span id="txt-cpu">0%</span></div>
+                <div class="meter-track">
+                    <div class="meter-fill fill-yellow" id="bar-cpu"></div>
+                </div>
+            </div>
+
+            <div class="meter-row">
+                <div class="meter-label"><span>Bandwidth Usage</span><span id="txt-bw">0%</span></div>
+                <div class="meter-track">
+                    <div class="meter-fill fill-red" id="bar-bw"></div>
+                </div>
+            </div>
+
+            <div class="meter-row">
+                <div class="meter-label"><span>Active Connections</span><span id="txt-conn">0</span></div>
+                <div class="meter-track">
+                    <div class="meter-fill fill-green" id="bar-conn"></div>
+                </div>
+            </div>
+
+            <div id="server-alert"
+                style="margin-top:15px; color: var(--term-red); font-weight:bold; display:none; text-align:center; border:1px solid var(--term-red); padding:5px;">
+                ⛔Server Critical/Down</div>
+        </div>
+    </div>
+
+        <script src="CyberDefenseVisualizationDemo-en.js"></script>
+</body>
+
+</html>

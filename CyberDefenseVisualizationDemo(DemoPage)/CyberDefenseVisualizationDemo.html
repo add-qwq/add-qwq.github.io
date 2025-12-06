@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<!--请勿在未经允许的情况下使用该页面的代码-->
+<!--该页面版权归Rockaz.top的开发者所有-->
+<!--此页代码已开源至GitHub，受到开源协议保护-->
+<!--我们建议，如果你需要此页代码，请到GitHub页下载，并且在Apache-2.0许可证的规则下使用，而不是偷-->
+<!--
+    本页GitHub仓库：https://github.com/add-qwq/CyberDefenseVisualizationDemo
+-->
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网络攻防可视化演示</title>
+    <link rel="stylesheet" href="CyberDefenseVisualizationDemo.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="title">CyberDefenseVisualizationDemo</div>
+        <div class="controls">
+            <button onclick="setMode('normal')" class="active" id="btn-normal" data-tooltip="正常业务流量模式，模拟常规用户访问">正常业务
+                (Safe)</button>
+            <button onclick="setMode('ddos')" class="danger" id="btn-ddos" data-tooltip="分布式拒绝服务攻击，通过大量流量淹没服务器带宽">DDoS
+                (流量洪泛)</button>
+            <button onclick="setMode('cc')" class="danger" id="btn-cc"
+                data-tooltip="常规CC攻击，HTTP(S)-Flood，模拟大量用户请求消耗服务器CPU资源">CC-Flood(资源耗尽)</button>
+            <button onclick="setMode('bypass')" class="danger" id="btn-bypass"
+                data-tooltip="CC攻击绕过防护，Bypass，使用伪装技术绕过WAF检测">CC-Bypass(请求伪装)</button>
+            <div style="width:1px; background:#444; margin:0 5px;"></div>
+            <button onclick="toggleEducationPanel()" id="btn-education" data-tooltip="显示/隐藏本页说明与基础教育科普">说明</button>
+            <button onclick="restartServer()" id="btn-restart" class="danger">重启服务器</button>
+            <button onclick="toggleWAF()" id="btn-waf">CDN-WAF: 关</button>
+            <button onclick="toggleTheme()" id="btn-theme">☀️ 切换主题</button>
+        </div>
+    </header>
+
+    <div id="vis-container">
+        <canvas id="simCanvas"></canvas>
+
+        <div id="education-panel" class="hud-panel">
+            <div class="education-title">本页说明与基础教育科普</div>
+
+            <div class="education-section">
+                <div class="education-subtitle">免 责 声 明</div>
+                <div class="education-text">• 本页模拟了一个简单的网络攻防场景，展示了不同攻击方式对服务器的影响，所有内容均为模拟数据</div>
+                <div class="education-text">• 通过模拟正常业务流量、DDoS攻击、CC攻击等场景，用户可以直观地理解不同攻击方式的危害和防护手段</div>
+                <div class="education-text">• 页面仅用于学习和演示，不代表任何实际的网络攻防场景</div>
+                <div class="education-text">• 科普内容仅供学习参考，适用于基础学习者，请勿作为专业建议进行参考</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">页面快速上手操作指引</div>
+                <div class="education-text">• 点击不同攻击模式按钮，观察服务器CPU/带宽/连接数的变化</div>
+                <div class="education-text">• 开启「CDN-WAF」后，对比攻击被拦截的效果（不同攻击的拦截率不同）</div>
+                <div class="education-text">• 服务器崩溃后，点击「重启服务器」可重置所有状态</div>
+                <div class="education-text">• 切换「浅色/深色主题」适配不同视觉习惯</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">互动演示说明</div>
+                <div class="education-text">• <span style="color:var(--term-green)">绿色</span>光点：正常用户请求</div>
+                <div class="education-text">• <span style="color:var(--term-red)">红色</span>光点：DDoS攻击数据包</div>
+                <div class="education-text">• <span style="color:var(--term-yellow)">黄色</span>光点：CC攻击请求</div>
+                <div class="education-text">• <span style="color:var(--term-blue)">蓝色</span>屏障：WAF防护墙</div>
+                <div class="education-text">• 光点爆炸：请求被WAF拦截或到达服务器</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">1. 正常业务流量 (Normal)</div>
+                <div class="education-text">• 特征：请求频率低、单请求资源消耗小、来源分散且合法</div>
+                <div class="education-text">• 对服务器影响：CPU/带宽/连接数维持在低水平，服务器健康度稳定</div>
+                <div class="education-note">注：合理的请求量不会对服务器造成过大压力，必要时可考虑CDN分发以及负载均衡</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">2. DDoS攻击 (分布式拒绝服务)</div>
+                <div class="education-text">• 原理：利用大量僵尸网络（Botnet）发送海量数据包，耗尽服务器带宽</div>
+                <div class="education-text">• 特征：流量暴增、数据包体积大、攻击速度快，属于网络层攻击</div>
+                <div class="education-text">• 危害：服务器带宽被占满，合法请求无法到达，表现为服务器公网无法访问</div>
+                <div class="education-note">防护手段：CDN流量清洗、黑洞路由、DDoS高防IP</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">3. 常规CC攻击 (HTTP(s)-Flood)</div>
+                <div class="education-text">• 原理：模拟大量合法用户发送HTTP请求，消耗服务器CPU/内存资源</div>
+                <div class="education-text">• 特征：请求数多、单请求耗CPU（如动态接口或复杂查询）、属于应用层攻击</div>
+                <div class="education-text">• 危害：服务器CPU占用率高，无法处理正常请求，响应超时</div>
+                <div class="education-note">防护手段：请求频率限制、验证码、人机验证、WAF规则拦截</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">4. Bypass (绕过防护的CC攻击)</div>
+                <div class="education-text">• 原理：通过伪装请求特征或合法行为绕过WAF检测（如伪造合法User-Agent、IP欺骗、Cookie重放）</div>
+                <div class="education-text">• 特征：攻击包伪装成正常请求，初期难以被识别，会逐步暴露特征</div>
+                <div class="education-text">• 危害：绕过基础防护规则，持续消耗服务器资源，隐蔽性更强</div>
+                <div class="education-note">防护手段：行为分析、特征识别、JS挑战、合理的WAF配置</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">5. CDN提供的WAF防护</div>
+                <div class="education-text">• 作用：部署在CDN端，可过滤恶意请求，保护Web应用安全</div>
+                <div class="education-text">• 防护能力：在合理配置下，可拦截大部分的DDoS/CC攻击</div>
+                <div class="education-text">• 相比本地WAF优劣势：多地边缘节点防护、低延迟、DDoS防护能力更强，但配置灵活性稍低</div>
+                <div class="education-text">• 可在本页中点击"CDN-WAF"按钮，粗略观察不同攻击的拦截效果差异</div>
+                <div class="education-note">注：WAF不是万能的！WAF不是万能的！实际场景中需结合多种防护手段构建完整安全体系！</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">6. 本页的服务器状态指标</div>
+                <div class="education-text">• CPU负载：反映服务器处理请求的计算压力，CC攻击主要影响该指标</div>
+                <div class="education-text">• 带宽占用：反映网络传输压力，DDoS攻击主要影响该指标</div>
+                <div class="education-text">• 并发连接数：同时与服务器建立的连接数量，超限会导致新请求无法建立</div>
+                <div class="education-note">提示：服务器状态指标仅供参考，实际情况要复杂的多（如内存、磁盘IO、数据库压力等）</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">7. 补充认知：攻击与防护的核心逻辑</div>
+                <div class="education-text">• 攻击本质：消耗目标的有限资源（带宽/CPU/连接数），使其无法提供正常服务</div>
+                <div class="education-text">• 防护核心：识别恶意流量（特征/行为+隔离/拦截+扩容抗攻击资源</div>
+                <div class="education-text">• 本页演示局限性：未模拟混合攻击、多层防护、弹性扩容等真实场景；未模拟Web应用层攻击（如SQL注入、XSS等）</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">8. 基础网络分层认知</div>
+                <div class="education-text">• 应用层（L7）：处理HTTP/HTTPS等协议，负责业务逻辑和数据交换</div>
+                <div class="education-text">• 传输层（L4），负责端到端的通信，如TCP/UDP</div>
+                <div class="education-text">• 参考文章：<a href="https://www.rockaz.top/blog/post_detail?id=21"
+                        target="_blank">关于OSI七层模型：除了L4和L7，其他层都去哪了？</a></div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">9. 参考文献 / 建议阅读</div>
+                <div class="education-text">• Cloudflare学习中心：<a
+                        href="https://www.cloudflare.com/learning/ddos/what-is-a-ddos-attack/"
+                        target="_blank">什么是DDoS攻击？</a></div>
+                <div class="education-text">• Cloudflare学习中心：<a
+                        href="https://www.cloudflare.com/learning/ddos/ip-spoofing/" target="_blank">什么是IP欺骗？</a></div>
+                <div class="education-text">• Cloudflare学习中心：<a
+                        href="https://www.cloudflare-cn.com/learning/ddos/how-to-prevent-ddos-attacks/"
+                        target="_blank">如何预防DDoS攻击？</a></div>
+                <div class="education-text">• Cloudflare学习中心：<a
+                        href="https://www.cloudflare-cn.com/learning/cdn/what-is-a-cdn/"
+                        target="_blank">什么是内容分发网络(CDN)？</a></div>
+                <div class="education-text">• Cloudflare学习中心：<a
+                        href="https://www.cloudflare-cn.com/learning/security/what-is-web-application-security/"
+                        target="_blank">什么是Web应用安全？</a></div>
+                <div class="education-text">• 腾讯云开发者社区：<a href="https://cloud.tencent.com/developer/article/2452860"
+                        target="_blank">CC攻击，一种特殊的DDoS攻击</a></div>
+                <div class="education-text">• 阿里云文档：<a
+                        href="https://help.aliyun.com/zh/waf/web-application-firewall-3-0/use-cases/cc-attack-protection-best-practices"
+                        target="_blank">CC攻击防护最佳实践</a></div>
+                <div class="education-text">• CSDN博客：<a
+                        href="https://blog.csdn.net/m0_51330619/article/details/120422150"
+                        target="_blank">CC攻击——暴力破解/扫描目录绕过安全狗WAF</a></div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">10. 简单的测验</div>
+                <div class="education-text" style="margin-bottom: 12px;">通过以下题目检验基础认知（每题均为单选）：</div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">1. 以下关于DDoS和CC攻击的核心区别，描述最准确的是？
+                    </div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="a" onclick="checkAnswer('q1', this)"> A.
+                            DDoS只攻击带宽，CC只攻击CPU
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="b" onclick="checkAnswer('q1', this)"> B.
+                            DDoS侧重网络层资源耗尽，CC侧重应用层资源消耗
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="c" onclick="checkAnswer('q1', this)"> C.
+                            DDoS是手动攻击，CC是自动化攻击
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="d" onclick="checkAnswer('q1', this)"> D.
+                            DDoS可以被WAF拦截，CC无法拦截
+                        </label>
+                    </div>
+                    <div id="q1-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">2. CC-Bypass（绕过防护的CC攻击）的核心特征是？
+                    </div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="a" onclick="checkAnswer('q2', this)"> A. 攻击流量远大于普通CC攻击
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="b" onclick="checkAnswer('q2', this)"> B.
+                            伪装请求特征，规避WAF基础规则检测
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="c" onclick="checkAnswer('q2', this)"> C.
+                            直接攻击服务器硬件，而非网络层面
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="d" onclick="checkAnswer('q2', this)"> D. 只能在关闭WAF时生效
+                        </label>
+                    </div>
+                    <div id="q2-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">3. 以下哪种防护手段对DDoS攻击的防御效果最优？</div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="a" onclick="checkAnswer('q3', this)"> A. 增加服务器CPU核心数
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="b" onclick="checkAnswer('q3', this)"> B. 部署CDN流量清洗+高防IP
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="c" onclick="checkAnswer('q3', this)"> C. 关闭服务器不必要的端口
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="d" onclick="checkAnswer('q3', this)"> D. 仅依赖应用层WAF规则
+                        </label>
+                    </div>
+                    <div id="q3-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">4.
+                        服务器CPU持续90%以上高负载且长时间无法缓解，最可能是哪种攻击导致？</div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="a" onclick="checkAnswer('q4', this)"> A. 大流量DDoS攻击
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="b" onclick="checkAnswer('q4', this)"> B. CC/CC-Bypass攻击
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="c" onclick="checkAnswer('q4', this)"> C. 数据库注入攻击
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="d" onclick="checkAnswer('q4', this)"> D. 端口扫描攻击
+                        </label>
+                    </div>
+                    <div id="q4-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">5. 关于CDN的WAF防护逻辑，以下说法错误的是？
+                    </div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="a" onclick="checkAnswer('q5', this)"> A.
+                            WAF可在CDN边缘节点提前过滤恶意请求
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="b" onclick="checkAnswer('q5', this)"> B.
+                            CDN可分散源站压力，降低DDoS/CC攻击影响
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="c" onclick="checkAnswer('q5', this)"> C.
+                            开启WAF后能100%拦截所有CC-Bypass攻击
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="d" onclick="checkAnswer('q5', this)"> D.
+                            WAF对网络层和应用层攻击的防护能力不同
+                        </label>
+                    </div>
+                    <div id="q5-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin-top: 15px; padding: 10px; border-top: 1px solid var(--term-blue);">
+                    <button onclick="calculateScore()" style="padding: 6px 12px; font-size: 12px;">计算总分🤓</button>
+                    <div id="score-result" style="margin-top: 8px; font-size: 13px; color: var(--term-yellow);"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="server-hud" class="hud-panel">
+            <div
+                style="border-bottom:1px solid var(--term-blue); margin-bottom:10px; padding-bottom:5px; color:var(--term-blue);">
+                服务器状态面板</div>
+
+            <div class="meter-row"
+                style="border-bottom:1.7px dashed var(--ui-border); padding-bottom:5px; margin-bottom:5px;">
+                <div class="meter-label">
+                    <span>Requests / 请求数</span>
+                    <span id="txt-total-req" style="color:var(--term-blue); font-weight:bold;">0</span>
+                </div>
+                <div class="meter-label">
+                    <span>Traffic / 流量</span>
+                    <span id="txt-total-vol" style="color:var(--term-red); font-weight:bold;">0 GB</span>
+                </div>
+            </div>
+
+            <div class="meter-row">
+                <div class="meter-label"><span>CPU / 处理负载</span><span id="txt-cpu">0%</span></div>
+                <div class="meter-track">
+                    <div class="meter-fill fill-yellow" id="bar-cpu"></div>
+                </div>
+            </div>
+
+            <div class="meter-row">
+                <div class="meter-label"><span>Bandwidth / 带宽</span><span id="txt-bw">0%</span></div>
+                <div class="meter-track">
+                    <div class="meter-fill fill-red" id="bar-bw"></div>
+                </div>
+            </div>
+
+            <div class="meter-row">
+                <div class="meter-label"><span>Active Connections / 并发连接数</span><span id="txt-conn">0</span></div>
+                <div class="meter-track">
+                    <div class="meter-fill fill-green" id="bar-conn"></div>
+                </div>
+            </div>
+
+            <div id="server-alert"
+                style="margin-top:15px; color: var(--term-red); font-weight:bold; display:none; text-align:center; border:1px solid var(--term-red); padding:5px;">
+                ⛔服务器危急/停机</div>
+        </div>
+    </div>
+
+        <script src="CyberDefenseVisualizationDemo.js"></script>
+</body>
+
+</html>
