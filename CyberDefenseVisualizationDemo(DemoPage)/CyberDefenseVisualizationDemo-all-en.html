@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<!--Do not use the code on this page without permission-->
+<!--Copyright of this page belongs to the developer of Rockaz.top-->
+<!--The code on this page has been open-sourced on GitHub and is protected by open-source agreements-->
+<!--We recommend that if you need the code for this page, please download it from the GitHub page and use it under the rules of the Apache-2.0 license, rather than stealing-->
+<!--
+    GitHub repository for this page: https://github.com/add-qwq/CyberDefenseVisualizationDemo
+-->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Defense Visualization Demo</title>
+    <style>
+        :root {
+            --bg-color: #000;
+            --main-text-color: #ddd;
+            --header-bg: #0d0d0d;
+            --ui-border: #444;
+            --term-green: #00ff00;
+            --term-red: #ff3333;
+            --term-yellow: #ffff00;
+            --term-blue: #00ffff;
+            --button-bg: #1a1a1a;
+            --button-border: #333;
+            --button-text: #ccc;
+            --grid-color: #2d2d2d;
+            --tooltip-bg: rgba(30, 30, 30, 0.9);
+            --tooltip-color: #fff;
+            --tooltip-border: 1px solid var(--term-blue);
+            --tooltip-border-color: #fff;
+            --tooltip-arrow-color: #fff;
+        }
+
+        .light-mode {
+            --bg-color: #fff;
+            --main-text-color: #333;
+            --header-bg: #f0f0f0;
+            --ui-border: #ccc;
+            --term-green: #00ff00d8;
+            --term-red: #ff3333;
+            --term-yellow: #ffcc00;
+            --term-blue: #008cff;
+            --button-bg: #eee;
+            --button-border: #aaa;
+            --button-text: #333;
+            --grid-color: #e0e0e0;
+            --tooltip-bg: rgba(255, 255, 255, 0.95);
+            --tooltip-color: #333;
+            --tooltip-border-color: #333;
+            --tooltip-arrow-color: #333;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--main-text-color);
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 60px 1fr;
+            height: 100vh;
+            transition: background-color 0.3s;
+        }
+
+        header {
+            border-bottom: 1px solid var(--ui-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background: var(--header-bg);
+            z-index: 10;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        #vis-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .title {
+            font-weight: bold;
+            color: var(--term-blue);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            transition: color 0.3s;
+            user-select: none;
+        }
+
+        .light-mode .title {
+            text-shadow: none;
+            color: var(--term-blue);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background: var(--button-bg);
+            border: 1px solid var(--button-border);
+            color: var(--button-text);
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            user-select: none;
+            position: relative;
+        }
+
+        button:hover {
+            background: var(--ui-border);
+            border-color: var(--main-text-color);
+        }
+
+        button.active {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: var(--term-blue);
+            color: var(--term-blue);
+        }
+
+        button.danger.active {
+            background: rgba(255, 51, 51, 0.2);
+            border-color: var(--term-red);
+            color: var(--term-red);
+        }
+
+        .light-mode button.active {
+            background: rgba(0, 0, 204, 0.1);
+        }
+
+        .light-mode button.danger.active {
+            background: rgba(204, 0, 0, 0.1);
+        }
+
+        .hud-panel {
+            position: absolute;
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid var(--term-blue);
+            padding: 10px;
+            border-radius: 4px;
+            z-index: 5;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .light-mode .hud-panel {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--main-text-color);
+            border: 1px solid var(--term-blue);
+        }
+
+        #server-hud {
+            top: 20px;
+            right: 20px;
+            width: 250px;
+        }
+
+        #education-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 320px;
+            max-height: calc(100% - 40px);
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid var(--term-blue);
+            border-radius: 4px;
+            padding: 15px;
+            z-index: 6;
+            transition: all 0.3s;
+            user-select: text;
+            overflow-y: auto;
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+        #education-panel.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .light-mode #education-panel {
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        #education-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #education-panel::-webkit-scrollbar-track {
+            background: var(--ui-border);
+            border-radius: 3px;
+        }
+
+        #education-panel::-webkit-scrollbar-thumb {
+            background: var(--term-blue);
+            border-radius: 3px;
+        }
+
+        .education-title {
+            color: var(--term-blue);
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--ui-border);
+        }
+
+        .education-section {
+            margin: 12px 0;
+        }
+
+        .education-subtitle {
+            color: var(--term-blue);
+            font-size: 14px;
+            font-weight: bold;
+            margin: 8px 0 4px;
+        }
+
+        .education-text {
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 4px 0;
+        }
+
+        .education-note {
+            font-size: 12px;
+            margin-top: 6px;
+            padding-left: 8px;
+            border-left: 2px solid var(--term-red);
+        }
+
+        .meter-row {
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+        }
+
+        .meter-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+
+        .meter-track {
+            height: 8px;
+            background: var(--ui-border);
+            width: 100%;
+            border: 1px solid var(--ui-border);
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .fill-green {
+            background: var(--term-green);
+        }
+
+        .fill-red {
+            background: var(--term-red);
+        }
+
+        .fill-yellow {
+            background: var(--term-yellow);
+        }
+
+        .annotation {
+            position: absolute;
+            color: var(--term-yellow);
+            font-size: 0.7rem;
+            text-shadow: 0 0 5px var(--term-yellow);
+            z-index: 10;
+        }
+
+        .custom-tooltip {
+            position: absolute;
+            padding: 6px 10px;
+            background: var(--tooltip-bg);
+            color: var(--tooltip-color);
+            border: 1px solid var(--tooltip-border-color);
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateX(-50%) translateY(5px) scale(0.95);
+            transition:
+                opacity 0.25s ease 0s,
+                transform 0.25s ease 0s;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        .custom-tooltip.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+        }
+
+        .custom-tooltip::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: 5px solid transparent;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.25s ease 0s;
+            border-bottom-color: var(--tooltip-arrow-color);
+            top: -10px;
+        }
+
+        .custom-tooltip.show::after {
+            opacity: 1;
+        }
+
+        .custom-tooltip:not(.show) {
+            transition-duration: 0.1s, 0.1s;
+            transition-delay: 0s, 0s;
+        }
+
+        .custom-tooltip:not(.show)::after {
+            transition-duration: 0.15s;
+        }
+
+        .education-text a {
+            color: var(--term-blue);
+        }
+
+        @keyframes server-shake {
+            0% {
+                transform: translate(1px, 1px);
+            }
+
+            25% {
+                transform: translate(-1px, -1px);
+            }
+
+            50% {
+                transform: translate(1px, -1px);
+            }
+
+            75% {
+                transform: translate(-1px, 1px);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="title">CyberDefenseVisualizationDemo</div>
+        <div class="controls">
+            <button onclick="setMode('normal')" class="active" id="btn-normal"
+                data-tooltip="Normal traffic mode, simulating regular user access">Normal
+                Traffic</button>
+            <button onclick="setMode('ddos')" class="danger" id="btn-ddos"
+                data-tooltip="Distributed Denial of Service attack, overwhelming server bandwidth with massive traffic">DDoS
+                (Flood Attack)</button>
+            <button onclick="setMode('cc')" class="danger" id="btn-cc"
+                data-tooltip="Regular CC attack, HTTP(S)-Flood, simulating massive user requests to consume server CPU resources">CC-Flood(Resource
+                Exhaustion)</button>
+            <button onclick="setMode('bypass')" class="danger" id="btn-bypass"
+                data-tooltip="CC attack bypassing protection, using Bypass techniques to bypass WAF detection">CC-Bypass(Request
+                Spoofing)</button>
+            <div style="width:1px; background:#444; margin:0 5px;"></div>
+            <button onclick="toggleEducationPanel()" id="btn-education"
+                data-tooltip="Show/hide page instructions and basic educational content">Instructions</button>
+            <button onclick="restartServer()" id="btn-restart" class="danger">Restart Server</button>
+            <button onclick="toggleWAF()" id="btn-waf">CDN-WAF: Off</button>
+            <button onclick="toggleTheme()" id="btn-theme">☀️ Toggle Theme</button>
+        </div>
+    </header>
+
+    <div id="vis-container">
+        <canvas id="simCanvas"></canvas>
+
+        <div id="education-panel" class="hud-panel">
+            <div class="education-title">Page Instructions & Basic Educational Content</div>
+
+            <div class="education-section">
+                <div class="education-subtitle">DISCLAIMER</div>
+                <div class="education-text">• This page simulates a simple network attack and defense scenario,
+                    demonstrating the impact of different attack methods on servers. All content is simulated data</div>
+                <div class="education-text">• By simulating scenarios such as normal business traffic, DDoS attacks, and
+                    CC attacks, users can intuitively understand the hazards of different attack methods and protective
+                    measures</div>
+                <div class="education-text">• The page is for learning and demonstration purposes only and does not
+                    represent any actual network attack and defense scenario</div>
+                <div class="education-text">• The educational content is for learning reference only, suitable for basic
+                    learners, and should not be used as professional advice</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">Quick Start Guide</div>
+                <div class="education-text">• Click on different attack mode buttons to observe changes in server
+                    CPU/bandwidth/connections</div>
+                <div class="education-text">• After enabling "CDN-WAF", compare the effect of attack interception
+                    (different attacks have different interception rates)</div>
+                <div class="education-text">• After the server crashes, click "Restart Server" to reset all states</div>
+                <div class="education-text">• Switch "Light/Dark Theme" to suit different visual habits</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">Interactive Demo Explanation</div>
+                <div class="education-text">• <span style="color:var(--term-green)">Green</span> dots: Normal user
+                    requests</div>
+                <div class="education-text">• <span style="color:var(--term-red)">Red</span> dots: DDoS attack packets
+                </div>
+                <div class="education-text">• <span style="color:var(--term-yellow)">Yellow</span> dots: CC attack
+                    requests</div>
+                <div class="education-text">• <span style="color:var(--term-blue)">Blue</span> barrier: WAF protection
+                    wall</div>
+                <div class="education-text">• Dot explosion: Request intercepted by WAF or reaching server</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">1. Normal Traffic</div>
+                <div class="education-text">• Characteristics: Low request frequency, small resource consumption per
+                    request, scattered and legitimate sources</div>
+                <div class="education-text">• Impact on server: CPU/bandwidth/connections remain at low levels, server
+                    health is stable</div>
+                <div class="education-note">Note: A reasonable amount of requests will not put excessive pressure on the
+                    server. When necessary, consider CDN distribution and load balancing</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">2. DDoS Attack (Distributed Denial of Service)</div>
+                <div class="education-text">• Principle: Using a large botnet to send massive data packets, exhausting
+                    server bandwidth</div>
+                <div class="education-text">• Characteristics: Sudden traffic increase, large packet size, fast attack
+                    speed, belonging to network layer attacks</div>
+                <div class="education-text">• Harm: Server bandwidth is saturated, legitimate requests cannot reach,
+                    manifested as server inaccessibility from the public network</div>
+                <div class="education-note">Protection methods: CDN traffic cleaning, blackhole routing, DDoS
+                    high-defense IP</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">3. Regular CC Attack (HTTP(s)-Flood)</div>
+                <div class="education-text">• Principle: Simulating a large number of legitimate users to send HTTP
+                    requests, consuming server CPU/memory resources</div>
+                <div class="education-text">• Characteristics: Many requests, high CPU consumption per request (such as
+                    dynamic interfaces or complex queries), belonging to application layer attacks</div>
+                <div class="education-text">• Harm: High server CPU usage, unable to process normal requests, response
+                    timeout</div>
+                <div class="education-note">Protection methods: Request rate limiting, captcha, human-machine
+                    verification, WAF rule interception</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">4. Bypass (CC Attack Bypassing Protection)</div>
+                <div class="education-text">• Principle: Bypassing WAF detection by disguising request characteristics
+                    or legitimate behaviors (such as forging legitimate User-Agent, IP spoofing, cookie replay)</div>
+                <div class="education-text">• Characteristics: Attack packets are disguised as normal requests,
+                    difficult to identify initially, and will gradually expose characteristics</div>
+                <div class="education-text">• Harm: Bypassing basic protection rules, continuously consuming server
+                    resources, with stronger concealment</div>
+                <div class="education-note">Protection methods: Behavioral analysis, feature recognition, JS challenges,
+                    reasonable WAF configuration</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">5. WAF Protection Provided by CDN</div>
+                <div class="education-text">• Function: Deployed at the CDN end, can filter malicious requests and
+                    protect Web application security</div>
+                <div class="education-text">• Protection capability: With reasonable configuration, can intercept most
+                    DDoS/CC attacks</div>
+                <div class="education-text">• Advantages and disadvantages compared to local WAF: Multi-edge node
+                    protection, low latency, stronger DDoS protection capability, but slightly less configuration
+                    flexibility</div>
+                <div class="education-text">• You can click the "CDN-WAF" button on this page to roughly observe the
+                    difference in interception effects of different attacks</div>
+                <div class="education-note">Note: WAF is not omnipotent! WAF is not omnipotent! In actual scenarios, it
+                    is necessary to combine multiple protection methods to build a complete security system!</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">6. Server Status Indicators on This Page</div>
+                <div class="education-text">• CPU load: Reflects the computing pressure of the server to process
+                    requests, mainly affected by CC attacks</div>
+                <div class="education-text">• Bandwidth usage: Reflects network transmission pressure, mainly affected
+                    by DDoS attacks</div>
+                <div class="education-text">• Concurrent connections: The number of connections established with the
+                    server at the same time, exceeding the limit will cause new requests to fail to establish</div>
+                <div class="education-note">Tip: Server status indicators are for reference only. The actual situation
+                    is much more complex (such as memory, disk IO, database pressure, etc.)</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">7. Supplementary Cognition: Core Logic of Attack and Defense</div>
+                <div class="education-text">• Nature of attack: Consuming limited resources of the target
+                    (bandwidth/CPU/connections) to make it unable to provide normal services</div>
+                <div class="education-text">• Core of protection: Identifying malicious traffic (features/behavior) +
+                    isolation/interception + expanding anti-attack resources</div>
+                <div class="education-text">• Limitations of this demo: Does not simulate real scenarios such as mixed
+                    attacks, multi-layer protection, and elastic scaling; does not simulate Web application layer
+                    attacks (such as SQL injection, XSS, etc.)</div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">8. Basic Network Layer Cognition</div>
+                <div class="education-text">• Application layer (L7): Processes protocols such as HTTP/HTTPS,
+                    responsible for business logic and data exchange</div>
+                <div class="education-text">• Transport layer (L4): Responsible for end-to-end communication, such as
+                    TCP/UDP</div>
+                <div class="education-text">• Reference article: <a href="https://www.rockaz.top/blog/post_detail?id=21"
+                        target="_blank">Regarding the OSI seven layer model: Where have all the other layers gone except
+                        for L4 and L7?</a></div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">9. References / Recommended Reading</div>
+                <div class="education-text">• Cloudflare Learning Center: <a
+                        href="https://www.cloudflare.com/learning/ddos/what-is-a-ddos-attack/" target="_blank">What is a
+                        DDoS attack?</a></div>
+                <div class="education-text">• Cloudflare Learning Center: <a
+                        href="https://www.cloudflare.com/learning/ddos/ip-spoofing/" target="_blank">What is IP
+                        spoofing?</a></div>
+                <div class="education-text">• Cloudflare Learning Center: <a
+                        href="https://www.cloudflare-cn.com/learning/ddos/how-to-prevent-ddos-attacks/"
+                        target="_blank">How to prevent DDoS attacks?</a></div>
+                <div class="education-text">• Cloudflare Learning Center: <a
+                        href="https://www.cloudflare-cn.com/learning/cdn/what-is-a-cdn/" target="_blank">What is a
+                        Content Delivery Network (CDN)?</a></div>
+                <div class="education-text">• Cloudflare Learning Center: <a
+                        href="https://www.cloudflare-cn.com/learning/security/what-is-web-application-security/"
+                        target="_blank">What is Web application security?</a></div>
+                <div class="education-text">• Tencent Cloud Developer Community: <a
+                        href="https://cloud.tencent.com/developer/article/2452860" target="_blank">CC attack, a special
+                        type of DDoS attack</a></div>
+                <div class="education-text">• Alibaba Cloud Documentation: <a
+                        href="https://help.aliyun.com/zh/waf/web-application-firewall-3-0/use-cases/cc-attack-protection-best-practices"
+                        target="_blank">CC attack protection best practices</a></div>
+                <div class="education-text">• CSDN Blog: <a
+                        href="https://blog.csdn.net/m0_51330619/article/details/120422150" target="_blank">CC attack -
+                        brute force cracking/scanning directories to bypass Safedog WAF</a></div>
+            </div>
+
+            <div class="education-section">
+                <div class="education-subtitle">10. Simple Quiz</div>
+                <div class="education-text" style="margin-bottom: 12px;">Test your basic knowledge with the following
+                    questions (each is a single choice):</div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">1. Which of the following most
+                        accurately describes the core difference between DDoS and CC attacks?
+                    </div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="a" onclick="checkAnswer('q1', this)"> A.
+                            DDoS only attacks bandwidth, CC only attacks CPU
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="b" onclick="checkAnswer('q1', this)"> B.
+                            DDoS focuses on network layer resource exhaustion, CC focuses on application layer resource
+                            consumption
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="c" onclick="checkAnswer('q1', this)"> C.
+                            DDoS is manual attack, CC is automated attack
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q1" value="d" onclick="checkAnswer('q1', this)"> D.
+                            DDoS can be intercepted by WAF, CC cannot be intercepted
+                        </label>
+                    </div>
+                    <div id="q1-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">2. What is the core
+                        characteristic of CC-Bypass (CC attack bypassing protection)?
+                    </div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="a" onclick="checkAnswer('q2', this)"> A. Attack traffic
+                            is much larger than ordinary CC attacks
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="b" onclick="checkAnswer('q2', this)"> B.
+                            Disguising request characteristics to evade WAF basic rule detection
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="c" onclick="checkAnswer('q2', this)"> C.
+                            Directly attacking server hardware, not at the network level
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q2" value="d" onclick="checkAnswer('q2', this)"> D. Only effective
+                            when WAF is turned off
+                        </label>
+                    </div>
+                    <div id="q2-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">3. Which of the following
+                        protection methods is most effective against DDoS attacks?</div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="a" onclick="checkAnswer('q3', this)"> A. Increasing
+                            server CPU cores
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="b" onclick="checkAnswer('q3', this)"> B. Deploying CDN
+                            traffic cleaning + high-defense IP
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="c" onclick="checkAnswer('q3', this)"> C. Closing
+                            unnecessary server ports
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q3" value="d" onclick="checkAnswer('q3', this)"> D. Relying solely
+                            on application layer WAF rules
+                        </label>
+                    </div>
+                    <div id="q3-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">4.
+                        Server CPU continues to be above 90% load and cannot be relieved for a long time, most likely
+                        caused by which attack?</div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="a" onclick="checkAnswer('q4', this)"> A. High-traffic
+                            DDoS attack
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="b" onclick="checkAnswer('q4', this)"> B. CC/CC-Bypass
+                            attack
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="c" onclick="checkAnswer('q4', this)"> C. Database
+                            injection attack
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q4" value="d" onclick="checkAnswer('q4', this)"> D. Port scanning
+                            attack
+                        </label>
+                    </div>
+                    <div id="q4-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 500;">5. Regarding the WAF protection
+                        logic of CDN, which statement is incorrect?
+                    </div>
+                    <div>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="a" onclick="checkAnswer('q5', this)"> A.
+                            WAF can filter malicious requests in advance at CDN edge nodes
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="b" onclick="checkAnswer('q5', this)"> B.
+                            CDN can disperse origin server pressure and reduce the impact of DDoS/CC attacks
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="c" onclick="checkAnswer('q5', this)"> C.
+                            Enabling WAF can 100% intercept all CC-Bypass attacks
+                        </label>
+                        <label style="display: block; margin: 5px 0; cursor: pointer; font-size: 12px;">
+                            <input type="radio" name="q5" value="d" onclick="checkAnswer('q5', this)"> D.
+                            WAF has different protection capabilities against network layer and application layer
+                            attacks
+                        </label>
+                    </div>
+                    <div id="q5-result" style="margin-top: 6px; font-size: 12px;"></div>
+                </div>
+
+                <div style="margin-top: 15px; padding: 10px; border-top: 1px solid var(--term-blue);">
+                    <button onclick="calculateScore()" style="padding: 6px 12px; font-size: 12px;">Calculate Total
+                        Score🤓</button>
+                    <div id="score-result" style="margin-top: 8px; font-size: 13px; color: var(--term-yellow);"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="server-hud" class="hud-panel">
+            <div
+                style="border-bottom:1px solid var(--term-blue); margin-bottom:10px; padding-bottom:5px; color:var(--term-blue);">
+                Server Status Panel</div>
+
+            <div class="meter-row"
+                style="border-bottom:1.7px dashed var(--ui-border); padding-bottom:5px; margin-bottom:5px;">
+                <div class="meter-label">
+                    <span>Requests</span>
+                    <span id="txt-total-req" style="color:var(--term-blue); font-weight:bold;">0</span>
+                </div>
+                <div class="meter-label">
+                    <span>Traffic</span>
+                    <span id="txt-total-vol" style="color:var(--term-red); font-weight:bold;">0 GB</span>
+                </div>
+            </div>
+
+            <div class="meter-row">
+                <div class="meter-label"><span>CPU Load</span><span id="txt-cpu">0%</span></div>
+                <div class="meter-track">
+                    <div class="meter-fill fill-yellow" id="bar-cpu"></div>
+                </div>
+            </div>
+
+            <div class="meter-row">
+                <div class="meter-label"><span>Bandwidth Usage</span><span id="txt-bw">0%</span></div>
+                <div class="meter-track">
+                    <div class="meter-fill fill-red" id="bar-bw"></div>
+                </div>
+            </div>
+
+            <div class="meter-row">
+                <div class="meter-label"><span>Active Connections</span><span id="txt-conn">0</span></div>
+                <div class="meter-track">
+                    <div class="meter-fill fill-green" id="bar-conn"></div>
+                </div>
+            </div>
+
+            <div id="server-alert"
+                style="margin-top:15px; color: var(--term-red); font-weight:bold; display:none; text-align:center; border:1px solid var(--term-red); padding:5px;">
+                ⛔Server Critical/Down</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const SERVER_SIZE = 60;
+        const root = document.documentElement;
+        const body = document.body;
+
+        let width, height;
+        let particles = [];
+        let explosions = [];
+        let annotations = [];
+        let processingTasks = [];
+        let mode = 'normal';
+        let wafEnabled = false;
+        let frameCount = 0;
+        let isLightMode = false;
+        let educationPanelVisible = false;
+
+        let stats = {
+            cpu: 0,
+            bandwidth: 0,
+            connections: 0,
+            health: 100,
+            totalReq: 0,
+            totalVol: 0
+        };
+
+        let highCpuDuration = 0;
+        const HIGH_CPU_THRESHOLD = 90;
+        const CPU_CRASH_DURATION = 200;
+
+        let attackerX, serverX, centerY;
+        let wallX;
+
+        function resize() {
+            width = window.innerWidth;
+            height = document.getElementById('vis-container').clientHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            attackerX = width * 0.1;
+            serverX = width * 0.85;
+            wallX = width * 0.5;
+            centerY = height / 2;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function detectMobileDevice() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isSmallScreen = window.innerWidth < 768;
+            if (isMobile || isSmallScreen) {
+                alert("Please enable 'Desktop Site' in your browser for the best experience!");
+            }
+        }
+
+        detectMobileDevice();
+
+        function toggleEducationPanel() {
+            educationPanelVisible = !educationPanelVisible;
+            const panel = document.getElementById('education-panel');
+            const btn = document.getElementById('btn-education');
+
+            if (educationPanelVisible) {
+                panel.classList.add('show');
+                btn.classList.add('active');
+            } else {
+                panel.classList.remove('show');
+                btn.classList.remove('active');
+            }
+        }
+
+        (function () {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'custom-tooltip top';
+            document.body.appendChild(tooltip);
+
+            const tooltipButtons = document.querySelectorAll('button[data-tooltip]');
+            let hideTimer = null;
+            let showTimer = null;
+            let currentBtn = null;
+            let hasShown = false;
+            const SHOW_DELAY = 200;
+
+            tooltipButtons.forEach(button => {
+                button.addEventListener('mouseenter', function (e) {
+                    clearTimeout(hideTimer);
+                    currentBtn = this;
+
+                    if (hasShown) {
+                        clearTimeout(showTimer);
+                        if (tooltip.classList.contains('show')) {
+                            tooltip.classList.remove('show');
+                            setTimeout(() => showTooltip(this), 50);
+                        } else {
+                            showTooltip(this);
+                        }
+                    } else {
+                        clearTimeout(showTimer);
+                        showTimer = setTimeout(() => {
+                            if (currentBtn === this) {
+                                showTooltip(this);
+                                hasShown = true;
+                            }
+                        }, SHOW_DELAY);
+                    }
+                });
+
+                button.addEventListener('mouseleave', function () {
+                    hideTimer = setTimeout(() => {
+                        tooltip.classList.remove('show');
+                        currentBtn = null;
+                        hasShown = false;
+                    }, 20);
+                });
+            });
+
+            window.addEventListener('resize', function () {
+                clearTimeout(hideTimer);
+                clearTimeout(showTimer);
+                tooltip.classList.remove('show');
+                currentBtn = null;
+                hasShown = false;
+            });
+
+            function showTooltip(btn) {
+                const text = btn.getAttribute('data-tooltip');
+                const rect = btn.getBoundingClientRect();
+                tooltip.textContent = text;
+                tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                tooltip.style.top = `${rect.bottom + 10}px`;
+                setTimeout(() => {
+                    tooltip.classList.add('show');
+                }, 50);
+            }
+        })();
+
+        function toggleTheme(manual = true) {
+            isLightMode = !isLightMode;
+            const btn = document.getElementById('btn-theme');
+            if (isLightMode) {
+                body.classList.add('light-mode');
+                btn.innerHTML = '☀️ Toggle Theme';
+            } else {
+                body.classList.remove('light-mode');
+                btn.innerHTML = '🌙 Toggle Theme';
+            }
+            if (manual) {
+                localStorage.setItem('theme', isLightMode ? 'light' : 'dark');
+            }
+        }
+
+        function initTheme() {
+            const storedTheme = localStorage.getItem('theme');
+            const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+
+            if (storedTheme === 'light' || (!storedTheme && prefersLight)) {
+                isLightMode = false;
+                toggleTheme(false);
+            }
+        }
+        initTheme();
+
+        class Packet {
+            constructor(type) {
+                this.type = type;
+                this.x = attackerX + (Math.random() * 50 - 25);
+                this.y = centerY + (Math.random() * 400 - 200);
+
+                this.targetX = serverX;
+                this.targetY = centerY + (Math.random() * 100 - 50);
+
+                const angle = Math.atan2(this.targetY - this.y, this.targetX - this.x);
+
+                let speed = 3;
+                if (type === 'ddos') speed = 12;
+                if (type === 'cc') speed = 7;
+
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+
+                this.blocked = false;
+                this.dead = false;
+                this.size = type === 'ddos' ? 1.5 : 3;
+
+                this.color = '';
+                this.renderColor = '';
+                if (type === 'normal') this.color = this.renderColor = getCSSVar('--term-green');
+                if (type === 'ddos') this.color = this.renderColor = getCSSVar('--term-red');
+                if (type === 'cc') {
+                    this.color = this.renderColor = getCSSVar('--term-yellow');
+                }
+                if (type === 'bypass') this.color = getCSSVar('--term-yellow');
+                if (type === 'bypass') this.renderColor = getCSSVar('--term-green');
+
+                this.volume = 0;
+                if (type === 'normal') this.volume = 0.004;
+                else if (type === 'ddos') this.volume = 0.3;
+                else if (type === 'cc' || type === 'bypass') this.volume = 0.02;
+            }
+
+            update() {
+                if (wafEnabled && !this.blocked && Math.abs(this.x - wallX) < 10) {
+                    let blocked = false;
+
+                    if (this.type === 'ddos') blocked = true;
+                    if (this.type === 'cc') {
+                        if (Math.random() > 0.3) blocked = true;
+                    }
+
+                    if (this.type === 'bypass') {
+                        if (Math.random() > 0.95) blocked = true;
+                        else {
+                            this.renderColor = this.color;
+                            annotations.push({
+                                x: this.x, y: this.y,
+                                text: Math.random() > 0.5 ? '[Fake User-Agent]' : '[IP Spoofing]',
+                                life: 40
+                            });
+                        }
+                    }
+
+                    if (blocked) {
+                        stats.totalReq++;
+                        stats.totalVol += this.volume;
+
+                        this.blocked = true;
+                        this.vx = -this.vx * 0.5;
+                        this.vy = -this.vy * 0.5;
+                        this.dead = true;
+                        spawnExplosion(this.x, this.y, this.renderColor, true);
+                        return;
+                    }
+                }
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (Math.abs(this.x - serverX) < SERVER_SIZE / 2 && Math.abs(this.y - centerY) < SERVER_SIZE && !this.dead) {
+                    this.dead = true;
+                    if (stats.health > 0) {
+                        stats.totalReq++;
+                        stats.totalVol += this.volume;
+                        hitServer(this.type);
+                    }
+                    if (!this.blocked) spawnExplosion(this.x, this.y, this.color, false);
+                }
+
+                if (this.x > width || this.x < 0) this.dead = true;
+            }
+
+            draw() {
+                ctx.fillStyle = this.renderColor;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = this.renderColor;
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x - this.vx * 3, this.y - this.vy * 3);
+                ctx.strokeStyle = this.renderColor;
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        function hitServer(type) {
+            if (type === 'normal') {
+                stats.bandwidth += 0.5;
+                stats.cpu += 0.5;
+                stats.connections += 1;
+                stats.health = Math.min(100, stats.health + 0.5);
+            } else if (type === 'ddos') {
+                stats.bandwidth += 12.0;
+                stats.connections += 8;
+                stats.health = Math.max(0, stats.health - 0.7);
+            } else if (type === 'cc' || type === 'bypass') {
+                stats.bandwidth += 1.5;
+                processingTasks.push({ life: 100 });
+                stats.connections += 3;
+
+                stats.health = Math.max(0, stats.health - 0.2);
+            }
+        }
+
+        function spawnExplosion(x, y, color, isBlocked) {
+            for (let i = 0; i < (isBlocked ? 10 : 5); i++) {
+                explosions.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function loop() {
+            ctx.fillStyle = getCSSVar('--bg-color');
+            ctx.globalAlpha = isLightMode ? 0.8 : 0.4;
+            ctx.fillRect(0, 0, width, height);
+            ctx.globalAlpha = 1.0;
+
+            drawBackgroundGrid();
+
+            drawNetworkLines();
+            drawEntities();
+
+            spawnPackets();
+
+            particles.forEach(p => { p.update(); p.draw(); });
+            particles = particles.filter(p => !p.dead);
+
+            updateExplosions();
+            updateAnnotations();
+            updateServerState();
+
+            requestAnimationFrame(loop);
+            frameCount++;
+        }
+
+        function getCSSVar(varName) {
+            return getComputedStyle(body).getPropertyValue(varName).trim();
+        }
+
+        function drawBackgroundGrid() {
+            ctx.strokeStyle = getCSSVar('--grid-color');
+            ctx.lineWidth = 0.5;
+            for (let x = 0; x < width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawEntities() {
+            ctx.fillStyle = getCSSVar('--term-red');
+            if (mode === 'normal') ctx.fillStyle = getCSSVar('--ui-border');
+
+            for (let i = 0; i < 5; i++) {
+                let y = centerY + (i - 2) * 60;
+                ctx.fillRect(attackerX - 20, y - 10, 20, 20);
+                if (mode !== 'normal' && Math.random() > 0.5) {
+                    ctx.fillStyle = isLightMode ? '#000' : '#fff';
+                    ctx.fillRect(attackerX - 18, y - 8, 4, 4);
+                    ctx.fillStyle = getCSSVar('--term-red');
+                }
+            }
+            ctx.font = "14px 'Segoe UI', Arial, sans-serif";
+            ctx.fillStyle = getCSSVar('--main-text-color');
+            ctx.fillText("Internet / Attackers", attackerX - 50, centerY - 180);
+
+            const loadColor = stats.cpu > 80 ? getCSSVar('--term-red') : getCSSVar('--term-green');
+            ctx.fillStyle = isLightMode ? '#ccc' : '#222';
+            ctx.strokeStyle = loadColor;
+            ctx.lineWidth = 2;
+            ctx.fillRect(serverX - 30, centerY - 60, 60, 120);
+            ctx.strokeRect(serverX - 30, centerY - 60, 60, 120);
+
+            let tasksHeight = Math.min(100, processingTasks.length * 2);
+            ctx.fillStyle = 'rgba(255, 204, 0, 0.6)';
+            ctx.fillRect(serverX - 28, centerY + 58 - tasksHeight, 56, tasksHeight);
+
+            ctx.fillStyle = getCSSVar('--main-text-color');
+            ctx.fillText("Web Server", serverX - 34, centerY - 70);
+        }
+
+        function updateAnnotations() {
+            annotations = annotations.filter(a => {
+                a.life--;
+                return a.life > 0;
+            });
+
+            annotations.forEach(a => {
+                ctx.fillStyle = a.color || getCSSVar('--term-yellow');
+                ctx.globalAlpha = a.life / 40;
+                ctx.font = "10px 'Segoe UI', Arial, sans-serif";
+                ctx.fillText(a.text, a.x, a.y);
+                ctx.globalAlpha = 1.0;
+            });
+        }
+
+        function drawNetworkLines() {
+            ctx.strokeStyle = getCSSVar('--ui-border');
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = -2; i <= 2; i++) {
+                let yOffset = i * 50;
+                ctx.moveTo(attackerX, centerY + yOffset);
+                ctx.lineTo(serverX, centerY + yOffset / 2);
+            }
+            ctx.stroke();
+
+            if (wafEnabled) {
+                ctx.strokeStyle = getCSSVar('--term-blue');
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = getCSSVar('--term-blue');
+                ctx.beginPath();
+                ctx.moveTo(wallX, centerY - 200);
+                ctx.lineTo(wallX, centerY + 200);
+                ctx.stroke();
+
+                let scanY = centerY - 200 + (frameCount * 3 % 390);
+                ctx.fillStyle = 'rgba(0, 204, 255, 0.5)';
+                ctx.fillRect(wallX - 2, scanY, 4, 20);
+
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = getCSSVar('--term-blue');
+                ctx.font = "12px 'Segoe UI', Arial, sans-serif";
+                ctx.fillText("WAF Enabled", wallX - 25, centerY - 210);
+            } else {
+                ctx.strokeStyle = getCSSVar('--ui-border');
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(wallX, centerY - 200);
+                ctx.lineTo(wallX, centerY + 200);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        function spawnPackets() {
+            let rate = 0.02;
+            if (mode === 'ddos') rate = 0.8;
+            if (mode === 'cc') rate = 0.4;
+            if (mode === 'bypass') rate = 0.5;
+
+            if (Math.random() < 0.02) particles.push(new Packet('normal'));
+
+            if (mode !== 'normal') {
+                let count = 1;
+                if (mode === 'ddos') count = 5;
+
+                for (let i = 0; i < count; i++) {
+                    if (Math.random() < rate) particles.push(new Packet(mode));
+                }
+            }
+        }
+
+        function updateExplosions() {
+            explosions.forEach(e => {
+                e.x += e.vx;
+                e.y += e.vy;
+                e.life -= 0.05;
+
+                ctx.globalAlpha = e.life;
+                ctx.fillStyle = e.color;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            });
+            explosions = explosions.filter(e => e.life > 0);
+        }
+
+        function updateServerState() {
+            let processingPower = 2;
+            processingTasks = processingTasks.filter(t => {
+                t.life -= 1;
+                return t.life > 0;
+            });
+
+            let targetCpu = processingTasks.length * 3;
+            stats.cpu += (Math.max(2, targetCpu) - stats.cpu) * 0.1;
+
+            stats.bandwidth *= 0.93;
+            stats.connections = Math.max(0, Math.min(300, stats.connections * 0.97));
+
+            let cpuVal = Math.min(100, Math.round(stats.cpu));
+            if (cpuVal >= HIGH_CPU_THRESHOLD) {
+                highCpuDuration++;
+                if (highCpuDuration >= CPU_CRASH_DURATION) {
+                    stats.health = Math.max(0, stats.health - 2);
+                }
+            } else {
+                highCpuDuration = 0;
+            }
+
+            updateHUD();
+        }
+
+        function formatVolume(gb) {
+            if (gb > 1024 * 1024) return (gb / (1024 * 1024)).toFixed(2) + " PB";
+            if (gb > 1024) return (gb / 1024).toFixed(2) + " TB";
+            return gb.toFixed(1) + " GB";
+        }
+
+        function updateHUD() {
+            let cpuVal = Math.min(100, Math.round(stats.cpu));
+            let bwVal = Math.min(100, Math.round(stats.bandwidth));
+            let connVal = Math.round(stats.connections);
+
+            document.getElementById('txt-cpu').innerText = cpuVal + "%";
+            document.getElementById('bar-cpu').style.width = cpuVal + "%";
+
+            document.getElementById('txt-bw').innerText = bwVal + "%";
+            document.getElementById('bar-bw').style.width = bwVal + "%";
+
+            document.getElementById('txt-conn').innerText = connVal;
+            document.getElementById('bar-conn').style.width = (connVal / 300 * 100) + "%";
+
+            document.getElementById('txt-total-req').innerText = stats.totalReq.toLocaleString();
+            document.getElementById('txt-total-vol').innerText = formatVolume(stats.totalVol);
+
+            const alertBox = document.getElementById('server-alert');
+            if (stats.health <= 0) {
+                alertBox.style.display = 'block';
+                if (bwVal >= 95) alertBox.innerText = "⛔Server crashed (Bandwidth exhausted)";
+                else if (cpuVal >= 95 && highCpuDuration >= CPU_CRASH_DURATION) alertBox.innerText = "⛔Server crashed (CPU overloaded)";
+                else if (connVal >= 180) alertBox.innerText = "⛔Server crashed (Connections maxed)";
+                else alertBox.innerText = "⛔Server crashed (Service unavailable)";
+            } else if (cpuVal > 90 || bwVal > 90) {
+                alertBox.style.display = 'block';
+                alertBox.innerText = cpuVal > 90 ? "⚠️CPU Overload (Application layer pressure)" : "⚠️Bandwidth Saturation (Network layer pressure)";
+            } else {
+                alertBox.style.display = 'none';
+            }
+        }
+
+        function setMode(m) {
+            mode = m;
+            document.querySelectorAll('.controls button').forEach(b => {
+                if (b.id !== 'btn-waf' && b.id !== 'btn-theme' && b.id !== 'btn-restart' && b.id !== 'btn-education') b.classList.remove('active');
+            });
+            if (m !== 'waf') document.getElementById('btn-' + m).classList.add('active');
+        }
+
+        function toggleWAF() {
+            wafEnabled = !wafEnabled;
+            const btn = document.getElementById('btn-waf');
+            btn.innerText = wafEnabled ? "CDN-WAF: On" : "CDN-WAF: Off";
+            btn.classList.toggle('active');
+        }
+
+        function restartServer() {
+            stats.health = 200;
+            stats.cpu = 5;
+            stats.bandwidth = 2;
+            stats.connections = 0;
+            stats.totalReq = 0;
+            stats.totalVol = 0;
+            processingTasks = [];
+            highCpuDuration = 0;
+        }
+
+        function checkAnswer(questionId, radioEl) {
+            const correctAnswers = {
+                q1: 'b',
+                q2: 'b',
+                q3: 'b',
+                q4: 'b',
+                q5: 'c'
+            };
+            const resultEl = document.getElementById(questionId + '-result');
+
+            if (radioEl.value === correctAnswers[questionId]) {
+                resultEl.style.color = getCSSVar('--term-green');
+                resultEl.innerText = 'Correct answer!';
+            } else {
+                resultEl.style.color = getCSSVar('--term-red');
+                resultEl.innerText = 'Wrong answer! Try again?';
+            }
+        }
+
+        function getAnswerLabel(answerVal) {
+            const labelMap = { a: 'A', b: 'B', c: 'C', d: 'D' };
+            return labelMap[answerVal] || '';
+        }
+
+        function calculateScore() {
+            const correctAnswers = { q1: 'b', q2: 'b', q3: 'b', q4: 'b', q5: 'c' };
+            let correctCount = 0;
+            let totalCount = Object.keys(correctAnswers).length;
+
+            Object.keys(correctAnswers).forEach(qId => {
+                const selectedOption = document.querySelector(`input[name="${qId}"]:checked`);
+                if (selectedOption && selectedOption.value === correctAnswers[qId]) {
+                    correctCount++;
+                }
+            });
+
+            const score = (correctCount / totalCount) * 100;
+            const scoreEl = document.getElementById('score-result');
+
+            if (score === 100) {
+                scoreEl.innerHTML = `Perfect score! (${correctCount}/${totalCount})`;
+            } else if (score >= 80) {
+                scoreEl.innerHTML = `Excellent! Score: ${score} points (${correctCount}/${totalCount})`;
+            } else if (score >= 60) {
+                scoreEl.innerHTML = `Pass! Score: ${score} points (${correctCount}/${totalCount}), you can review the knowledge`;
+            } else {
+                scoreEl.innerHTML = `Needs improvement! Score: ${score} points (${correctCount}/${totalCount})`;
+            }
+        }
+
+        loop();
+    </script>
+</body>
+
+</html>
