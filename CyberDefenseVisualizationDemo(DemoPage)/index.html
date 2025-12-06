@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberDefenseVisualizationDemo--DemoPageSelection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Arial", "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #f5f7fa;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+            margin-bottom: 40px;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .demo-btn {
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 500;
+            color: white;
+            background-color: #4299e1;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            min-width: 220px;
+        }
+        .demo-btn:hover {
+            background-color: #3182ce;
+        }
+
+        .demo-btn.english {
+            background-color: #38b2ac;
+        }
+
+        .demo-btn.english:hover {
+            background-color: #319795;
+        }
+        .footer-note {
+            margin-top: 40px;
+            color: #a0aec0;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>CyberDefenseVisualizationDemo</h1>
+    <p class="subtitle">Please select the corresponding presentation page based on your visiting region for a smoother experience</p>
+    <p class="subtitle">请根据你的访问地域选择对应的演示页面，获得更流畅的体验</p>
+
+    <div class="btn-group">
+        <button class="demo-btn chinese" onclick="window.location.href='https://www.rockaz.top/CyberDefenseVisualizationDemo/'">
+            中文演示页面（国内用户）
+        </button>
+        <button class="demo-btn english" onclick="window.location.href='https://add-qwq.github.io/CyberDefenseVisualizationDemo(DemoPage)/CyberDefenseVisualizationDemo-en.html'">
+            English demo page (for overseas users)
+        </button>
+    </div>
+
+    <p class="footer-note">Hint: Overseas users are advised to choose an English page (GitHub Page), while domestic users can choose a Chinese page to reduce access latency</p>
+    <p class="footer-note">提示：海外用户建议选择英文页面（GitHub Page），国内用户选择中文页面可降低访问延迟</p>
+</body>
+</html>
