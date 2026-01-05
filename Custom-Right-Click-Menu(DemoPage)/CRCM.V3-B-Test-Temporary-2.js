@@ -60,144 +60,65 @@ const createRightClickMenu = () => {
     groups: [
         {
             id: 'general',
-            name: 'General Actions',
+            name: 'General',
             order: 10,
             items: [
-                {
-                    id: 'back',
-                    label: 'Back',
-                    icon: 'fa-arrow-left',
-                    callback: backAction,
-                    context: () => true
-                },
-                {
-                    id: 'refresh',
-                    label: 'Refresh',
-                    icon: 'fa-refresh',
-                    callback: refreshAction,
-                    context: () => true
-                }
+                {id: 'back', label: 'Back', icon: 'fa-arrow-left', callback: backAction, context: () => true},
+                {id: 'refresh', label: 'Refresh', icon: 'fa-refresh', callback: refreshAction, context: () => true}
             ]
         },
         {
             id: 'edit',
-            name: 'Edit Actions',
+            name: 'Edit',
             order: 20,
             items: [
-                {
-                    id: 'copy',
-                    label: 'Copy',
-                    icon: 'fa-copy',
-                    callback: copyAction,
-                    context: (ctx) => ctx.selectedText.trim().length > 0 || ctx.isInputFocused
-                },
-                {
-                    id: 'paste',
-                    label: 'Paste',
-                    icon: 'fa-paste',
-                    callback: pasteAction,
-                    context: (ctx) => ctx.isInputFocused && (ctx.target.tagName === 'INPUT' || ctx.target.tagName === 'TEXTAREA' || ctx.target.isContentEditable)
-                }
+                {id: 'copy', label: 'Copy', icon: 'fa-copy', callback: copyAction, context: (ctx) => ctx.selectedText.trim().length > 0 || ctx.isInputFocused},
+                {id: 'paste', label: 'Paste', icon: 'fa-paste', callback: pasteAction, context: (ctx) => ctx.isInputFocused && (ctx.target.tagName === 'INPUT' || ctx.target.tagName === 'TEXTAREA' || ctx.target.isContentEditable)}
             ]
         },
         {
             id: 'link',
-            name: 'Link Actions',
+            name: 'Link',
             order: 30,
             items: [
-                {
-                    id: 'open-in-new-tab',
-                    label: 'Open in New Tab',
-                    icon: 'fa-external-link',
-                    callback: openInNewTabAction,
-                    context: (ctx) => !!ctx.currentLinkUrl && !ctx.currentLinkUrl.startsWith('javascript:')
-                },
-                {
-                    id: 'copy-link',
-                    label: 'Copy Link Address',
-                    icon: 'fa-link',
-                    callback: copyLinkAction,
-                    context: (ctx) => !!ctx.currentLinkUrl && !ctx.currentLinkUrl.startsWith('javascript:')
-                }
+                {id: 'open-in-new-tab', label: 'Open New Tab', icon: 'fa-external-link', callback: openInNewTabAction, context: (ctx) => !!ctx.currentLinkUrl && !ctx.currentLinkUrl.startsWith('javascript:')},
+                {id: 'copy-link', label: 'Copy Link', icon: 'fa-link', callback: copyLinkAction, context: (ctx) => !!ctx.currentLinkUrl && !ctx.currentLinkUrl.startsWith('javascript:')}
             ]
         },
         {
             id: 'image',
-            name: 'Image Actions',
+            name: 'Image',
             order: 40,
             items: [
-                {
-                    id: 'open-image-in-new-tab',
-                    label: 'Open Image in New Tab',
-                    icon: 'fa-external-link',
-                    callback: openImageInNewTabAction,
-                    context: (ctx) => !!ctx.currentImageUrl && !ctx.currentImageUrl.startsWith('data:')
-                },
-                {
-                    id: 'copy-image-link',
-                    label: 'Copy Image Address',
-                    icon: 'fa-link',
-                    callback: copyImageUrlAction,
-                    context: (ctx) => !!ctx.currentImageUrl && !ctx.currentImageUrl.startsWith('data:')
-                }
+                {id: 'open-image-in-new-tab', label: 'Open Image New Tab', icon: 'fa-external-link', callback: openImageInNewTabAction, context: (ctx) => !!ctx.currentImageUrl && !ctx.currentImageUrl.startsWith('data:')},
+                {id: 'copy-image-link', label: 'Copy Image URL', icon: 'fa-link', callback: copyImageUrlAction, context: (ctx) => !!ctx.currentImageUrl && !ctx.currentImageUrl.startsWith('data:')}
             ]
         },
         {
             id: 'other',
-            name: 'Other Actions',
+            name: 'Others',
             order: 50,
             items: [
                 {
                     id: 'more',
-                    label: 'More Features',
+                    label: 'More',
                     icon: 'fa-ellipsis-h',
                     children: [
-                        {
-                            id: 'sub-1',
-                            label: 'Copy Current URL',
-                            icon: 'fa-globe',
-                            callback: () => copyWebsiteUrlAction(window.location.href)
-                        },
-                        {
-                            id: 'sub-2',
-                            label: 'Toggle Fullscreen',
-                            icon: 'fa-expand-arrows-alt',
-                            callback: fullscreenModeAction
-                        },
+                        {id: 'sub-1', label: 'Copy Current URL', icon: 'fa-globe', callback: () => copyWebsiteUrlAction(window.location.href)},
+                        {id: 'sub-2', label: 'Toggle Fullscreen', icon: 'fa-expand-arrows-alt', callback: fullscreenModeAction},
+                        {id: 'sub-3', label: 'Scroll to Bottom', icon: 'fa-arrow-down', callback: () => scrollToBottomAction()},
                         {
                             id: 'sub-3',
-                            label: 'Scroll to Bottom',
-                            icon: 'fa-arrow-down',
-                            callback: () => scrollToBottomAction()
-                        },
-                        {
-                            id: 'sub-3',
-                            label: 'Deep Nested Item',
+                            label: 'Deep Nested',
                             icon: 'fa-layer-group',
                             children: [
-                                {
-                                    id: 'deep-1',
-                                    label: 'Level 3 Item-1',
-                                    icon: 'fa-file-alt',
-                                    callback: () => alert('Example text from Level 3 Item-1')
-                                },
-                                {
-                                    id: 'deep-2',
-                                    label: 'Level 3 Item-2',
-                                    icon: 'fa-file-alt',
-                                    callback: () => alert('Example text from Level 3 Item-2')
-                                }
+                                {id: 'deep-1', label: 'L3 Item-1', icon: 'fa-file-alt', callback: () => alert('Text from L3 Item-1')},
+                                {id: 'deep-2', label: 'L3 Item-2', icon: 'fa-file-alt', callback: () => alert('Text from L3 Item-2')}
                             ]
                         }
                     ]
                 },
-                {
-                    id: 'back-to-home',
-                    label: 'Back to Home',
-                    icon: 'fa-home',
-                    callback: backToHomeAction,
-                    context: () => true
-                }
+                {id: 'back-to-home', label: 'Back to Home', icon: 'fa-home', callback: backToHomeAction, context: () => true}
             ]
         }
     ]
