@@ -813,18 +813,18 @@ const createRightClickMenu = () => {
         groups: [
             {
                 id: 'general',
-                name: '常规操作',
+                name: 'General',
                 order: 10,
                 items: [
                     {
                         id: 'back',
-                        label: '返回',
+                        label: 'Back',
                         icon: 'fa-arrow-left',
                         callback: backAction, context: () => true
                     },
                     {
                         id: 'refresh',
-                        label: '刷新',
+                        label: 'Reload',
                         icon: 'fa-refresh',
                         callback: refreshAction, context: () => true
                     }
@@ -832,19 +832,19 @@ const createRightClickMenu = () => {
             },
             {
                 id: 'edit',
-                name: '编辑操作',
+                name: 'Edit',
                 order: 20,
                 items: [
                     {
                         id: 'copy',
-                        label: '复制',
+                        label: 'Copy',
                         icon: 'fa-copy',
                         callback: copyAction,
                         context: (ctx) => ctx.selectedText.trim().length > 0 || ctx.isInputFocused
                     },
                     {
                         id: 'paste',
-                        label: '粘贴',
+                        label: 'Paste',
                         icon: 'fa-paste',
                         callback: pasteAction,
                         context: (ctx) => ctx.isInputFocused && (ctx.target.tagName === 'INPUT' || ctx.target.tagName === 'TEXTAREA' || ctx.target.isContentEditable)
@@ -853,19 +853,19 @@ const createRightClickMenu = () => {
             },
             {
                 id: 'link',
-                name: '链接操作',
+                name: 'Link',
                 order: 30,
                 items: [
                     {
                         id: 'open-in-new-tab',
-                        label: '在新标签页打开',
+                        label: 'Open tab',
                         icon: 'fa-external-link',
                         callback: openInNewTabAction,
                         context: (ctx) => !!ctx.currentLinkUrl && !ctx.currentLinkUrl.startsWith('javascript:')
                     },
                     {
                         id: 'copy-link',
-                        label: '复制链接地址',
+                        label: 'Copy link',
                         icon: 'fa-link',
                         callback: copyLinkAction,
                         context: (ctx) => !!ctx.currentLinkUrl && !ctx.currentLinkUrl.startsWith('javascript:')
@@ -874,19 +874,19 @@ const createRightClickMenu = () => {
             },
             {
                 id: 'image',
-                name: '图片操作',
+                name: 'Image',
                 order: 40,
                 items: [
                     {
                         id: 'open-image-in-new-tab',
-                        label: '在新标签页打开',
+                        label: 'Open tab',
                         icon: 'fa-external-link',
                         callback: openImageInNewTabAction,
                         context: (ctx) => !!ctx.currentImageUrl && !ctx.currentImageUrl.startsWith('data:')
                     },
                     {
                         id: 'copy-image-link',
-                        label: '复制图片地址',
+                        label: 'Copy img URL',
                         icon: 'fa-link',
                         callback: copyImageUrlAction,
                         context: (ctx) => !!ctx.currentImageUrl && !ctx.currentImageUrl.startsWith('data:')
@@ -895,47 +895,47 @@ const createRightClickMenu = () => {
             },
             {
                 id: 'other',
-                name: '其他操作',
+                name: 'More',
                 order: 50,
                 items: [
                     {
                         id: 'more',
-                        label: '更多功能',
+                        label: 'More',
                         icon: 'fa-ellipsis-h',
                         // 多级嵌套子菜单
                         children: [
                             {
                                 id: 'sub-1',
-                                label: '复制当前链接',
+                                label: 'Copy URL',
                                 icon: 'fa-globe',
                                 callback: () => copyWebsiteUrlAction(window.location.href)
                             },
                             {
                                 id: 'sub-2',
-                                label: '全屏模式开关',
+                                label: 'Fullscreen',
                                 icon: 'fa-expand-arrows-alt',
                                 callback: fullscreenModeAction
                             },
                             {
                                 id: 'sub-3',
-                                label: '滚动到最底部',
+                                label: 'Bottom',
                                 icon: 'fa-arrow-down',
                                 callback: () => scrollToBottomAction()
                             },
                             {
                                 id: 'sub-3',
-                                label: '深层嵌套项',
+                                label: 'Nested',
                                 icon: 'fa-layer-group',
                                 children: [
                                     {
                                         id: 'deep-1',
-                                        label: '三级菜单项-1',
+                                        label: 'Item 1',
                                         icon: 'fa-file-alt',
                                         callback: () => alert('来自三级菜单项-1的示例文本')
                                     },
                                     {
                                         id: 'deep-2',
-                                        label: '三级菜单项-2',
+                                        label: 'Item 2',
                                         icon: 'fa-file-alt',
                                         callback: () => alert('来自三级菜单项-2的示例文本')
                                     }
@@ -945,7 +945,7 @@ const createRightClickMenu = () => {
                     },
                     {
                         id: 'back-to-home',
-                        label: '返回主页',
+                        label: 'Home',
                         icon: 'fa-home',
                         callback: backToHomeAction,
                         context: () => true
