@@ -11,15 +11,768 @@
  * 该项目受Apache License 2.0开源协议保护，您必须在遵守协议的前提下使用、修改和分发该项目的代码
  */
 
-// 此文件为CRCM.V3-B.js的压缩格式版本，若在意加载速度，则可在生产环境中使用
-// 此版本默认只配置了第二级嵌套菜单，若需要更多级菜单，可在注册默认菜单配置中 添加菜单项/取消注释 以启用更多嵌套菜单项代码
-// 以下代码仅为压缩格式后的代码，不建议直接修改，如需查看/修改，请查看Custom-Right-Click-Menu-V3-B.js
+// 此文件为CRCM.V3-B.js的格式化版本，若在意加载速度，则不建议在生产环境中使用
+// 此版本默认配置了第三级嵌套菜单，若不需要第三级菜单，可在注册默认菜单配置中删除sub-3（深层嵌套项）菜单项代码
 
-class CustomRightClickMenu extends HTMLElement{static instance=null;constructor({theme:e={},externalStyles:t=[]}={}){if(CustomRightClickMenu.instance)return CustomRightClickMenu.instance;super(),this.attachShadow({mode:"open"}),this.isMounted=!1,this.listenArgs=[],this.isOpening=!1,this.lastContextMenuTime=0,this.contextMenuX=0,this.contextMenuY=0,this.currentImageUrl=null,this.currentLinkUrl=null,this.selectedText="",this.isMenuVisible=!1,this.isAnimating=!1,this.menuOpenTime=0,this.focusedElementBeforeMenu=null,this.scrollTimer=null,this.touchStartY=0,this.target=null,this.menuItemsRegistry=new Map,this.groupsRegistry=new Map,this.selectorSchemas=new Map,this.theme={"--menu-bg":"rgba(255, 255, 255, 1)","--menu-border":"1px solid rgba(0, 0, 0, 0.1)","--menu-backdrop":"blur(10px)","--menu-shadow":"0 6px 15px -3px rgba(0, 0, 0, 0.08)","--item-hover-bg":"#f3f4f6","--text-color":"#6b7280","--header-color":"#9ca3af","--divider-color":"#e5e7eb","--transition-speed":"0.1s","--arrow-margin-left":"auto",...e},this.externalStyles=t,this.injectGlobalStyles(t),this.shadowRoot.innerHTML=`\n      ${this._renderExternalStyles()}\n      <style>\n        :host{${this._renderThemeVariables()}}\n        #custom-menu {\n          display: none;\n          position: fixed;\n          background: var(--menu-bg);\n          border-radius: 12px;\n          box-shadow: var(--menu-shadow);\n          padding: 0.5rem 0;\n          z-index: 9999;\n          min-width: 180px;\n          transition: all var(--transition-speed) ease-out;\n          transform-origin: top left;\n          opacity: 0;\n          transform: scale(0.95);\n          backdrop-filter: var(--menu-backdrop);\n          border: var(--menu-border);\n          user-select: none;\n        }\n        .sub-menu {\n          position: fixed;\n          opacity: 0;\n          visibility: hidden; \n          transform: scale(0.95);\n          transform-origin: top left;\n          transition: opacity 0.2s ease, transform 0.2s ease;\n          background: var(--menu-bg);\n          border-radius: 12px;\n          box-shadow: var(--menu-shadow);\n          padding: 0.5rem 0;\n          min-width: 180px;\n          backdrop-filter: var(--menu-backdrop);\n          border: var(--menu-border);\n          z-index: 10000;\n          pointer-events: none;\n        }\n        .sub-menu.active {\n          opacity: 1;\n          visibility: visible;\n          transform: scale(1);\n          pointer-events: auto;\n        }\n        .menu-item {\n            display: flex;\n            align-items: center;\n            padding: 0.75rem 1.25rem;\n            margin: 0 5px;\n            cursor: pointer;\n            transition: all 0.2s ease;\n            color: var(--text-color);\n            position: relative;\n        }\n        .menu-header {\n            padding: 0.5rem 1.25rem;\n            font-size: 0.875rem;\n            color: var(--header-color);\n            text-transform: uppercase;\n            font-weight: 500;\n        }\n        #custom-menu.visible { opacity: 1; transform: scale(1); }\n        #custom-menu.hiding { opacity: 0; transform: scale(0.95); }\n        .menu-item:hover{background-color:var(--item-hover-bg);border-radius:10px;}\n        .menu-item i { width: 1.5rem; margin-right: 0.75rem; color: var(--text-color); }\n        .menu-item .arrow { margin-left: var(--arrow-margin-left); font-size: 10px; opacity: 0.6; margin-right: 0; width: auto; display: flex; align-items: center; justify-content: center; }        \n        .menu-item .arrow svg { height: 20px; width: 10px; }\n        .menu-divider { border-top: 1px solid var(--divider-color); margin: 0.25rem 0; }\n      </style>\n      <div id="custom-menu" part="menu"></div>\n    `,this.customMenu=this.shadowRoot.getElementById("custom-menu"),CustomRightClickMenu.instance=this}injectGlobalStyles(e){e.forEach((e=>{if(document.querySelector(`link[href="${e}"]`))return;const t=document.createElement("link");t.rel="stylesheet",t.href=e,document.head.appendChild(t)}))}_renderExternalStyles(){return this.externalStyles.map((e=>`<link rel="stylesheet" href="${e}">`)).join("")}_renderThemeVariables(){return Object.entries(this.theme).map((([e,t])=>`${e}: ${t};`)).join("\n")}setTheme(e){if("object"!=typeof e||null===e)throw new Error("主题配置必须是非空对象");this.theme={...this.theme,...e};const t=this.shadowRoot.host;Object.entries(this.theme).forEach((([e,n])=>{t.style.setProperty(e,n)}))}registerSchema({selector:e="default",groups:t}){if(!Array.isArray(t))throw new Error("groups 必须是数组");this.selectorSchemas.set(e,t)}unregisterSchema(e="default"){this.selectorSchemas.delete(e)}mount(e=window){if("function"!=typeof e?.addEventListener)throw new Error("挂载目标必须是HTMLElement或Window");this.isMounted&&this.target===e||(this.isMounted&&this.unmount(),this.target=e,this.listenArgs=[[e,"contextmenu",this.handleContextMenu.bind(this),{capture:!0}],[document,"click",this.handleClickOutside.bind(this)],[document,"wheel",this.handleScroll.bind(this),{passive:!0,capture:!0}],[document,"touchstart",this.handleTouchStart.bind(this),{passive:!0}],[document,"touchmove",this.handleTouchMove.bind(this),{passive:!0}],[document,"keydown",this.handleKeydown.bind(this)],[window,"scroll",this.handleScroll.bind(this),{passive:!0}]],this.listenArgs.forEach((([e,...t])=>e.addEventListener(...t))),this.isMounted=!0)}unmount(){this.isMounted&&this.target&&(this.listenArgs.forEach((([e,...t])=>e.removeEventListener(...t))),this.target=null,this.isMounted=!1,this.listenArgs=[],this.hideMenu())}handleContextMenu(e){e.preventDefault(),this.focusedElementBeforeMenu=document.activeElement;const t=Date.now();this.lastContextMenuTime;this.lastContextMenuTime=t,this.selectedText=window.getSelection().toString(),this.currentLinkUrl=this.getCurrentLink(e.target),this.currentImageUrl=this.getCurrentImage(e.target),this.contextMenuX=e.clientX,this.contextMenuY=e.clientY;const n={selectedText:this.selectedText,currentLinkUrl:this.currentLinkUrl,currentImageUrl:this.currentImageUrl,isInputFocused:this.focusedElementBeforeMenu&&("INPUT"===this.focusedElementBeforeMenu.tagName||"TEXTAREA"===this.focusedElementBeforeMenu.tagName||this.focusedElementBeforeMenu.isContentEditable),target:this.focusedElementBeforeMenu,event:e};let i=this.selectorSchemas.get("default");for(const[t,n]of this.selectorSchemas)if("default"!==t&&e.target.closest(t)){i=n;break}if(this.updateMenuItemsFromSchema(i,n),!this.customMenu||0===this.customMenu.children.length)return void this.hideMenu();let s,o;const r=!this.isMenuVisible&&!this.isOpening;if(r)this.customMenu.style.visibility="hidden",this.customMenu.style.display="block",this.customMenu.style.transition="none",s=this.customMenu.offsetWidth,o=this.customMenu.offsetHeight,this.customMenu.style.display="none",this.customMenu.style.visibility="",this.customMenu.style.transition="";else{const e=this.customMenu.getBoundingClientRect();s=e.width,o=e.height}const a=window.innerWidth,l=window.innerHeight;let u=this.contextMenuX;u+s+7>a&&(u=Math.max(7,a-s-7));let c=this.contextMenuY;c+o+7>l&&(c=Math.max(7,l-o-7)),u=Math.max(7,u),c=Math.max(7,c),r?this.showMenu(u,c):this.moveMenu(u,c),this.menuOpenTime=t}getCurrentLink(e){const t=e.closest("a");if(t)return t.href;const n=e.getAttribute("onclick");if(n){const e=n.match(/window\.open\(['"](.*?)['"]/i);if(e)return e[1];const t=n.match(/location\.href\s*=\s*['"](.*?)['"]/i);if(t)return t[1]}return null}getCurrentImage(e){const t=e.closest("img");if(t)return t.src;const n=window.getComputedStyle(e).getPropertyValue("background-image");if(n&&"none"!==n){const e=n.match(/url\(["']?(.*?)["']?\)/i);if(e)return e[1]}return null}_renderMenuLayer(e,t,n){e.forEach((e=>{if("function"==typeof e.context&&!e.context(n))return;if(e.divider){const e=document.createElement("div");return e.className="menu-divider",void t.appendChild(e)}const i=document.createElement("div");if(i.className="menu-item",i.dataset.id=e.id,e.icon){const t=document.createElement("i");t.className=`fa ${e.icon}`,i.appendChild(t)}const s=document.createElement("span");if(s.textContent=e.label,i.appendChild(s),e.children&&Array.isArray(e.children)&&e.children.length>0){const s=document.createElement("span");s.className="arrow",s.innerHTML='\n                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="24" viewBox="0 0 12 24"><path fill="currentColor" fill-rule="evenodd" d="M10.157 12.711L4.5 18.368l-1.414-1.414l4.95-4.95l-4.95-4.95L4.5 5.64l5.657 5.657a1 1 0 0 1 0 1.414"/></svg>\n                ',i.appendChild(s);const o=document.createElement("div");if(o.className="sub-menu",o.setAttribute("data-parent-id",e.id),this.shadowRoot.appendChild(o),this._renderMenuLayer(e.children,o,n),o.childNodes.length>0){const e=()=>{Array.from(t.children).forEach((e=>{if(e.classList.contains("menu-item")&&e!==i){const t=this.shadowRoot.querySelector(`.sub-menu[data-parent-id="${e.dataset.id}"]`);t&&t.classList.remove("active")}}));const e=i.getBoundingClientRect();o.style.display="block",o.style.visibility="hidden";const n=o.offsetWidth,s=o.offsetHeight,r=window.innerWidth,a=window.innerHeight,l=e.right+n+6<r,u=e.left-n-6>0;let c,h,d="top left";if(l||u)l?(c=e.right-3,d="top left"):(c=e.left-n+3,d="top right"),h=e.top-5,h+s+6>a&&(h=a-s-6),h<6&&(h=6);else{c=Math.max(6,e.left);e.bottom+s+6<a?(h=e.bottom,d="top center"):(h=e.top-s,d="bottom center")}o.style.left=`${c}px`,o.style.top=`${h}px`,o.style.transformOrigin=d,o.style.visibility="visible",o.classList.add("active")},n=e=>{e.relatedTarget&&(o===e.relatedTarget||o.contains(e.relatedTarget))||o.classList.remove("active")};i.addEventListener("mouseenter",e),i.addEventListener("mouseleave",n),o.addEventListener("mouseenter",(()=>{o.classList.add("active");let e=t;for(;e&&e.classList.contains("sub-menu");)e.classList.add("active"),e=this.shadowRoot.querySelector(`.sub-menu[data-parent-id="${e.getAttribute("data-parent-id")}"]`)?.parentElement||null})),o.addEventListener("mouseleave",(e=>{if(e.relatedTarget&&(i===e.relatedTarget||i.contains(e.relatedTarget)))return;if(e.relatedTarget&&e.relatedTarget.closest(".sub-menu"))return void(o.contains(e.relatedTarget)||o.classList.remove("active"));o.classList.remove("active");let n=t;for(;n&&n.classList.contains("sub-menu");){n.classList.remove("active");const e=n.getAttribute("data-parent-id"),t=this.shadowRoot.querySelector(`.menu-item[data-id="${e}"]`);n=t?t.parentElement:null}}))}}else i.addEventListener("click",(t=>{t.stopPropagation(),"function"==typeof e.callback&&e.callback(n),this.hideMenu()}));t.appendChild(i)}))}updateMenuItemsFromSchema(e,t){const n=[];e.forEach((e=>{const i=e.items.filter((e=>"function"!=typeof e.context||e.context(t)));i.length>0&&n.push({id:e.id,name:e.name,order:e.order||0,items:i})})),n.sort(((e,t)=>e.order-t.order)),this.customMenu.innerHTML="",this.shadowRoot.querySelectorAll(".sub-menu").forEach((e=>e.remove())),n.forEach(((e,n)=>{if(n>0){const e=document.createElement("div");e.className="menu-divider",this.customMenu.appendChild(e)}const i=document.createElement("div");i.className="menu-header",i.textContent=e.name,this.customMenu.appendChild(i),this._renderMenuLayer(e.items,this.customMenu,t)})),0===n.length&&this.hideMenu()}showMenu(e,t){!this.isOpening&&this.customMenu&&(this.isOpening=!0,this.customMenu.style.position="fixed",this.customMenu.style.left=`${e}px`,this.customMenu.style.top=`${t}px`,this.customMenu.style.display="block",this.customMenu.classList.remove("hiding"),requestAnimationFrame((()=>{this.customMenu.classList.add("visible"),setTimeout((()=>{this.isAnimating=!1,this.isOpening=!1,this.isMenuVisible=!0}),150)})))}moveMenu(e,t){if(!this.customMenu)return;const n=this.isAnimating;n||(this.isAnimating=!0),requestAnimationFrame((()=>{this.customMenu.style.left=`${e}px`,this.customMenu.style.top=`${t}px`,n||setTimeout((()=>this.isAnimating=!1),150)}))}handleClickOutside(e){const t=e.composedPath(),n=t.includes(this.customMenu)||Array.from(this.shadowRoot.querySelectorAll(".sub-menu")).some((e=>t.includes(e)));this.isMenuVisible&&!n&&this.hideMenu()}handleScroll(){this.isMenuVisible&&(this.scrollTimer&&clearTimeout(this.scrollTimer),this.scrollTimer=setTimeout((()=>this.hideMenu()),50))}handleTouchStart(e){this.isMenuVisible&&(this.touchStartY=e.touches[0].clientY)}handleTouchMove(e){if(this.isMenuVisible){const t=e.touches[0].clientY;Math.abs(t-this.touchStartY)>5&&this.hideMenu()}}handleKeydown(e){"Escape"===e.key&&this.isMenuVisible&&this.hideMenu()}hideMenu(){!this.isAnimating&&this.customMenu&&(this.isAnimating=!0,this.isOpening=!1,this.shadowRoot.querySelectorAll(".sub-menu").forEach((e=>e.classList.remove("active"))),this.customMenu.classList.remove("visible"),this.customMenu.classList.add("hiding"),setTimeout((()=>{this.customMenu.style.display="none",this.customMenu.classList.remove("hiding"),this.customMenu.style.left="auto",this.customMenu.style.top="auto",this.isAnimating=!1,this.isMenuVisible=!1,this.currentLinkUrl=null,this.currentImageUrl=null,this.selectedText=""}),150))}}customElements.get("custom-right-click-menu")||customElements.define("custom-right-click-menu",CustomRightClickMenu);
+class CustomRightClickMenu extends HTMLElement {
+    static instance = null;
+    constructor({
+        theme = {},
+        externalStyles = []
+    } = {}) {
+        if (CustomRightClickMenu.instance) {
+            return CustomRightClickMenu.instance;
+        }
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.isMounted = false;
+        this.listenArgs = [];
+        this.isOpening = false;
+        this.lastContextMenuTime = 0;
+        this.contextMenuX = 0;
+        this.contextMenuY = 0;
+        this.currentImageUrl = null;
+        this.currentLinkUrl = null;
+        this.selectedText = '';
+        this.isMenuVisible = false;
+        this.isAnimating = false;
+        this.menuOpenTime = 0;
+        this.focusedElementBeforeMenu = null;
+        this.scrollTimer = null;
+        this.hideMenuTimer = null;
+        this.touchStartY = 0;
+        this.target = null;
+        this.menuItemsRegistry = new Map();
+        this.groupsRegistry = new Map();
+        this.selectorSchemas = new Map();
+        // 默认主题配置（请勿直接在此处修改配置，请通过后续代码的自定义主题功能修改）
+        this.theme = {
+            '--menu-bg': 'rgba(255, 255, 255, 1)',
+            '--menu-border': '1px solid rgba(0, 0, 0, 0.1)',
+            '--menu-backdrop': 'blur(10px)',
+            '--menu-shadow': '0 6px 15px -3px rgba(0, 0, 0, 0.08)',
+            '--item-hover-bg': '#f3f4f6',
+            '--text-color': '#6b7280',
+            '--header-color': '#9ca3af',
+            '--divider-color': '#e5e7eb',
+            '--transition-speed': '0.1s',
+            '--arrow-margin-left': 'auto',
+            ...theme
+        };
+        this.externalStyles = externalStyles;
+        this.injectGlobalStyles(externalStyles);
+        this.shadowRoot.innerHTML = `
+      ${this._renderExternalStyles()}
+      <style>
+        :host{${this._renderThemeVariables()}}
+        #custom-menu {
+          display: none;
+          position: fixed;
+          background: var(--menu-bg);
+          border-radius: 12px;
+          box-shadow: var(--menu-shadow);
+          padding: 0.5rem 0;
+          z-index: 9999;
+          min-width: 180px;
+          transition: all var(--transition-speed) ease-out;
+          transform-origin: top left;
+          opacity: 0;
+          transform: scale(0.95);
+          backdrop-filter: var(--menu-backdrop);
+          border: var(--menu-border);
+          user-select: none;
+        }
+        .sub-menu {
+          position: fixed;
+          opacity: 0;
+          visibility: hidden; 
+          transform: scale(0.95);
+          transform-origin: top left;
+          transition: opacity 0.2s ease, transform 0.2s ease;
+          background: var(--menu-bg);
+          border-radius: 12px;
+          box-shadow: var(--menu-shadow);
+          padding: 0.5rem 0;
+          min-width: 180px;
+          backdrop-filter: var(--menu-backdrop);
+          border: var(--menu-border);
+          z-index: 10000;
+          pointer-events: none;
+          contain: layout paint;
+        }
+        .sub-menu.active {
+          opacity: 1;
+          visibility: visible;
+          transform: scale(1);
+          pointer-events: auto;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            color: var(--text-color);
+            position: relative;
+            border-radius:10px;
+        }
+        .menu-header {
+            padding: 0.5rem 1.25rem;
+            font-size: 0.875rem;
+            color: var(--header-color);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        #custom-menu.visible { opacity: 1; transform: scale(1); }
+        #custom-menu.hiding { opacity: 0; transform: scale(0.95); }
+        .menu-item:hover{background-color:var(--item-hover-bg);}
+        .menu-item i { width: 1.5rem; margin-right: 0.75rem; color: var(--text-color); }
+        .menu-item .arrow { margin-left: var(--arrow-margin-left); font-size: 10px; opacity: 0.6; margin-right: 0; width: auto; display: flex; align-items: center; justify-content: center; }        
+        .menu-item .arrow svg { height: 20px; width: 10px; }
+        .menu-divider { border-top: 1px solid var(--divider-color); margin: 0.25rem 0; }
+      </style>
+      <div id="custom-menu" part="menu"></div>
+    `;
+        this.customMenu = this.shadowRoot.getElementById('custom-menu');
+        CustomRightClickMenu.instance = this;
+    }
+
+    injectGlobalStyles(styles) {
+        styles.forEach(styleUrl => {
+            const existingLink = document.querySelector(`link[href="${styleUrl}"]`);
+            if (existingLink) return;
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = styleUrl;
+            document.head.appendChild(link);
+        });
+    }
+    _renderExternalStyles() {
+        return this.externalStyles.map(styleUrl => `<link rel="stylesheet" href="${styleUrl}">`).join('');
+    }
+    _renderThemeVariables() {
+        return Object.entries(this.theme).map(([key, value]) => `${key}: ${value};`).join('\n');
+    }
+    setTheme(newTheme) {
+        if (typeof newTheme !== 'object' || newTheme === null) {
+            throw new Error('主题配置必须是非空对象');
+        }
+        this.theme = { ...this.theme, ...newTheme };
+        const hostElement = this.shadowRoot.host;
+        Object.entries(this.theme).forEach(([key, value]) => {
+            hostElement.style.setProperty(key, value);
+        });
+    }
+
+    registerSchema({ selector = 'default', groups }) {
+        if (!Array.isArray(groups)) {
+            throw new Error('groups 必须是数组');
+        }
+        this.selectorSchemas.set(selector, groups);
+    }
+
+    unregisterSchema(selector = 'default') {
+        this.selectorSchemas.delete(selector);
+    }
+
+    mount(target = window) {
+        if (typeof target?.addEventListener !== 'function') {
+            throw new Error('挂载目标必须是HTMLElement或Window');
+        }
+        if (this.isMounted && this.target === target) {
+            return;
+        }
+        if (this.isMounted) {
+            this.unmount();
+        }
+        this.target = target;
+        this.listenArgs = [
+            [target, 'contextmenu', this.handleContextMenu.bind(this), { capture: true }],
+            [document, 'click', this.handleClickOutside.bind(this)],
+            [document, 'wheel', this.handleScroll.bind(this), { passive: true, capture: true }],
+            [document, 'touchstart', this.handleTouchStart.bind(this), { passive: true }],
+            [document, 'touchmove', this.handleTouchMove.bind(this), { passive: true }],
+            [document, 'keydown', this.handleKeydown.bind(this)],
+            [window, 'scroll', this.handleScroll.bind(this), { passive: true }],
+            [document, 'selectionchange', this.handleSelectionChange.bind(this)],
+            [document, 'touchend', this.handleTouchEnd.bind(this)]
+        ];
+        this.listenArgs.forEach(([ele, ...args]) => ele.addEventListener(...args));
+        this.isMounted = true;
+    }
+
+    unmount() {
+        if (!this.isMounted || !this.target) return;
+        this.listenArgs.forEach(([ele, ...args]) => ele.removeEventListener(...args));
+        this.clearTimers();
+        this.hideMenu();
+        this.isMounted = false;
+        this.target = null;
+        this.listenArgs = [];
+    }
+
+    clearTimers() {
+        if (this.scrollTimer) {
+            clearTimeout(this.scrollTimer);
+            this.scrollTimer = null;
+        }
+        if (this.hideMenuTimer) {
+            clearTimeout(this.hideMenuTimer);
+            this.hideMenuTimer = null;
+        }
+    }
+
+    handleContextMenu(e) {
+        e.preventDefault();
+        this.focusedElementBeforeMenu = document.activeElement;
+        const now = Date.now();
+        const timeSinceLast = now - this.lastContextMenuTime;
+        this.lastContextMenuTime = now;
+        this.selectedText = window.getSelection().toString();
+        this.currentLinkUrl = this.getCurrentLink(e.target);
+        this.currentImageUrl = this.getCurrentImage(e.target);
+        this.contextMenuX = e.clientX;
+        this.contextMenuY = e.clientY;
+
+        const contextData = {
+            selectedText: this.selectedText,
+            currentLinkUrl: this.currentLinkUrl,
+            currentImageUrl: this.currentImageUrl,
+            isInputFocused: this.focusedElementBeforeMenu &&
+                (this.focusedElementBeforeMenu.tagName === 'INPUT' ||
+                    this.focusedElementBeforeMenu.tagName === 'TEXTAREA' ||
+                    this.focusedElementBeforeMenu.isContentEditable),
+            target: this.focusedElementBeforeMenu,
+            event: e
+        };
+
+        let matchedSchema = this.selectorSchemas.get('default');
+        for (const [selector, schema] of this.selectorSchemas) {
+            if (selector !== 'default' && e.target.closest(selector)) {
+                matchedSchema = schema;
+                break;
+            }
+        }
+
+        this.updateMenuItemsFromSchema(matchedSchema, contextData);
+
+        if (!this.customMenu || this.customMenu.children.length === 0) {
+            this.hideMenu();
+            return;
+        }
+
+        const safeMargin = 7;
+        let menuWidth, menuHeight;
+        const isNewOpen = !this.isMenuVisible && !this.isOpening;
+
+        if (isNewOpen) {
+            this.customMenu.style.visibility = 'hidden';
+            this.customMenu.style.display = 'block';
+            this.customMenu.style.transition = 'none';
+            menuWidth = this.customMenu.offsetWidth;
+            menuHeight = this.customMenu.offsetHeight;
+            this.customMenu.style.display = 'none';
+            this.customMenu.style.visibility = '';
+            this.customMenu.style.transition = '';
+        } else {
+            const menuRect = this.customMenu.getBoundingClientRect();
+            menuWidth = menuRect.width;
+            menuHeight = menuRect.height;
+        }
+
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        let left = this.contextMenuX;
+        if (left + menuWidth + safeMargin > viewportWidth) {
+            left = Math.max(safeMargin, viewportWidth - menuWidth - safeMargin);
+        }
+
+        let top = this.contextMenuY;
+        if (top + menuHeight + safeMargin > viewportHeight) {
+            top = Math.max(safeMargin, viewportHeight - menuHeight - safeMargin);
+        }
+
+        left = Math.max(safeMargin, left);
+        top = Math.max(safeMargin, top);
+
+        isNewOpen ? this.showMenu(left, top) : this.moveMenu(left, top);
+        this.menuOpenTime = now;
+    }
+
+    getCurrentLink(target) {
+        const linkElement = target.closest('a');
+        if (linkElement) return linkElement.href;
+        const onclick = target.getAttribute('onclick');
+        if (onclick) {
+            const openMatch = onclick.match(/window\.open\(['"](.*?)['"]/i);
+            if (openMatch) return openMatch[1];
+            const hrefMatch = onclick.match(/location\.href\s*=\s*['"](.*?)['"]/i);
+            if (hrefMatch) return hrefMatch[1];
+        }
+        return null;
+    }
+    getCurrentImage(target) {
+        const imgElement = target.closest('img');
+        if (imgElement) return imgElement.src;
+        const style = window.getComputedStyle(target);
+        const bgImage = style.getPropertyValue('background-image');
+        if (bgImage && bgImage !== 'none') {
+            const bgMatch = bgImage.match(/url\(["']?(.*?)["']?\)/i);
+            if (bgMatch) return bgMatch[1];
+        }
+        return null;
+    }
+
+    _renderMenuLayer(items, parentContainer, ctx) {
+        items.forEach((item) => {
+            if (typeof item.context === 'function' && !item.context(ctx)) return;
+
+            if (item.divider) {
+                const divider = document.createElement('div');
+                divider.className = 'menu-divider';
+                parentContainer.appendChild(divider);
+                return;
+            }
+
+            const menuItem = document.createElement('div');
+            menuItem.className = 'menu-item';
+            menuItem.dataset.id = item.id;
+
+            if (item.icon) {
+                const icon = document.createElement('i');
+                icon.className = `fa ${item.icon}`;
+                menuItem.appendChild(icon);
+            }
+
+            const label = document.createElement('span');
+            label.textContent = item.label;
+            menuItem.appendChild(label);
+
+            if (item.children && Array.isArray(item.children) && item.children.length > 0) {
+                const arrow = document.createElement('span');
+                arrow.className = 'arrow';
+                arrow.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="24" viewBox="0 0 12 24"><path fill="currentColor" fill-rule="evenodd" d="M10.157 12.711L4.5 18.368l-1.414-1.414l4.95-4.95l-4.95-4.95L4.5 5.64l5.657 5.657a1 1 0 0 1 0 1.414"/></svg>`;
+                menuItem.appendChild(arrow);
+
+                let subMenu = null;
+                let hideTimer = null;
+
+                const handleShow = () => {
+                    if (hideTimer) {
+                        clearTimeout(hideTimer);
+                        hideTimer = null;
+                    }
+
+                    Array.from(parentContainer.children).forEach(child => {
+                        if (child.classList.contains('menu-item') && child !== menuItem) {
+                            const otherSub = this.shadowRoot.querySelector(`.sub-menu[data-parent-id="${child.dataset.id}"]`);
+                            if (otherSub) otherSub.remove();
+                        }
+                    })
+
+                    if (!subMenu || !subMenu.isConnected) {
+                        subMenu = document.createElement('div');
+                        subMenu.className = 'sub-menu';
+                        subMenu.setAttribute('data-parent-id', item.id);
+                        this.shadowRoot.appendChild(subMenu);
+
+                        this._renderMenuLayer(item.children, subMenu, ctx);
+
+                        if (subMenu.childNodes.length === 0) {
+                            subMenu.remove();
+                            subMenu = null;
+                            return;
+                        }
+
+                        const parentRect = menuItem.getBoundingClientRect();
+                        subMenu.style.display = 'block';
+                        subMenu.style.visibility = 'hidden';
+
+                        const subWidth = subMenu.offsetWidth;
+                        const subHeight = subMenu.offsetHeight;
+                        const viewportWidth = window.innerWidth;
+                        const viewportHeight = window.innerHeight;
+                        const safeMargin = 6;
+                        const canFitRight = parentRect.right + subWidth + safeMargin < viewportWidth;
+                        const canFitLeft = parentRect.left - subWidth - safeMargin > 0;
+
+                        let finalLeft, finalTop, origin = 'top left';
+
+                        if (canFitRight || canFitLeft) {
+                            if (canFitRight) {
+                                finalLeft = parentRect.right - 3;
+                                origin = 'top left';
+                            } else {
+                                finalLeft = parentRect.left - subWidth + 3;
+                                origin = 'top right';
+                            }
+                            finalTop = parentRect.top - 5;
+                            if (finalTop + subHeight + safeMargin > viewportHeight) {
+                                finalTop = viewportHeight - subHeight - safeMargin;
+                            }
+                            finalTop = Math.max(safeMargin, finalTop);
+                        } else {
+                            finalLeft = Math.max(safeMargin, parentRect.left);
+                            const canFitDown = parentRect.bottom + subHeight + safeMargin < viewportHeight;
+                            if (canFitDown) {
+                                finalTop = parentRect.bottom;
+                                origin = 'top center';
+                            } else {
+                                finalTop = parentRect.top - subHeight;
+                                origin = 'bottom center';
+                            }
+                        }
+
+                        subMenu.style.left = `${finalLeft}px`;
+                        subMenu.style.top = `${finalTop}px`;
+                        subMenu.style.transformOrigin = origin;
+
+                        subMenu.addEventListener('mouseenter', () => {
+                            if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+                            subMenu.classList.add('active');
+
+                            let p = parentContainer;
+                            while (p && p.classList.contains('sub-menu')) {
+                                p.classList.add('active');
+                                const parentId = p.getAttribute('data-parent-id');
+                                const pItem = this.shadowRoot.querySelector(`.menu-item[data-id="${parentId}"]`);
+                                p = pItem ? pItem.parentElement : null;
+                            }
+                        });
+
+                        subMenu.addEventListener('mouseleave', (e) => {
+                            if (e.relatedTarget && (menuItem === e.relatedTarget || menuItem.contains(e.relatedTarget))) return;
+
+                            if (subMenu) {
+                                subMenu.classList.remove('active');
+                                if (hideTimer) clearTimeout(hideTimer);
+                                hideTimer = setTimeout(() => {
+                                    if (subMenu && !subMenu.classList.contains('active')) {
+                                        subMenu.remove();
+                                        subMenu = null;
+                                    }
+                                }, 200);
+                            }
+
+                            let p = parentContainer;
+                            while (p && p.classList.contains('sub-menu')) {
+                                p.classList.remove('active');
+                                const parentId = p.getAttribute('data-parent-id');
+                                const parentItem = this.shadowRoot.querySelector(`.menu-item[data-id="${parentId}"]`);
+                                p = parentItem ? parentItem.parentElement : null;
+                            }
+                        });
+                    }
+
+                    subMenu.style.visibility = 'visible';
+                    subMenu.classList.add('active');
+                };
+
+                const handleHide = (e) => {
+                    if (e.relatedTarget && subMenu && (subMenu === e.relatedTarget || subMenu.contains(e.relatedTarget))) {
+                        return;
+                    }
+                    if (subMenu) {
+                        subMenu.classList.remove('active');
+                        if (hideTimer) clearTimeout(hideTimer);
+                        hideTimer = setTimeout(() => {
+                            if (subMenu && !subMenu.classList.contains('active')) {
+                                subMenu.remove();
+                                subMenu = null;
+                            }
+                        }, 200);
+                    }
+                };
+
+                menuItem.addEventListener('mouseenter', handleShow);
+                menuItem.addEventListener('mouseleave', handleHide);
+            } else {
+                menuItem.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof item.callback === 'function') item.callback(ctx);
+                    this.hideMenu();
+                });
+            }
+            parentContainer.appendChild(menuItem);
+        });
+    }
+
+    updateMenuItemsFromSchema(schemaGroups, ctx) {
+        const visibleGroups = [];
+        schemaGroups.forEach(group => {
+            const visibleItems = group.items.filter(item =>
+                typeof item.context === 'function' ? item.context(ctx) : true
+            );
+            if (visibleItems.length > 0) {
+                visibleGroups.push({
+                    id: group.id,
+                    name: group.name,
+                    order: group.order || 0,
+                    items: visibleItems
+                });
+            }
+        });
+
+        visibleGroups.sort((a, b) => a.order - b.order);
+
+        this.customMenu.innerHTML = '';
+        this.shadowRoot.querySelectorAll('.sub-menu').forEach(el => el.remove());
+
+        visibleGroups.forEach((group, index) => {
+            if (index > 0) {
+                const divider = document.createElement('div');
+                divider.className = 'menu-divider';
+                this.customMenu.appendChild(divider);
+            }
+            const header = document.createElement('div');
+            header.className = 'menu-header';
+            header.textContent = group.name;
+            this.customMenu.appendChild(header);
+
+            this._renderMenuLayer(group.items, this.customMenu, ctx);
+        });
+
+        if (visibleGroups.length === 0) this.hideMenu();
+    }
+
+    showMenu(left, top) {
+        if (this.isOpening || !this.customMenu) return;
+        this.isOpening = true;
+        this.customMenu.style.position = 'fixed';
+        this.customMenu.style.left = `${left}px`;
+        this.customMenu.style.top = `${top}px`;
+        this.customMenu.style.display = 'block';
+        this.customMenu.classList.remove('hiding');
+        requestAnimationFrame(() => {
+            this.customMenu.classList.add('visible');
+            setTimeout(() => {
+                this.isAnimating = false;
+                this.isOpening = false;
+                this.isMenuVisible = true;
+            }, 150);
+        });
+    }
+
+    moveMenu(left, top) {
+        if (!this.customMenu) return;
+        const wasAnimating = this.isAnimating;
+        if (!wasAnimating) this.isAnimating = true;
+        requestAnimationFrame(() => {
+            this.customMenu.style.left = `${left}px`;
+            this.customMenu.style.top = `${top}px`;
+            if (!wasAnimating) setTimeout(() => (this.isAnimating = false), 150);
+        });
+    }
+
+    handleClickOutside(e) {
+        const path = e.composedPath();
+        const isInsideMenu = path.includes(this.customMenu) ||
+            Array.from(this.shadowRoot.querySelectorAll('.sub-menu')).some(sm => path.includes(sm));
+        if (this.isMenuVisible && !isInsideMenu) {
+            this.hideMenu();
+        }
+    }
+
+    handleScroll() {
+        if (this.isMenuVisible) {
+            if (this.scrollTimer) clearTimeout(this.scrollTimer);
+            this.scrollTimer = setTimeout(() => this.hideMenu(), 50);
+        }
+    }
+
+    handleSelectionChange() {
+        const selection = window.getSelection();
+        if (this.isMenuVisible && selection.toString().length > 0) {
+            this.hideMenu();
+        }
+    }
+    handleTouchEnd(e) {
+        setTimeout(() => {
+            const selection = window.getSelection();
+            const text = selection.toString();
+
+            if (text && text.length > 0) {
+                try {
+                    const range = selection.getRangeAt(0);
+                    const rect = range.getBoundingClientRect();
+                    const clientX = rect.left + (rect.width / 2);
+                    const clientY = rect.bottom + 5;
+                    const mockEvent = {
+                        preventDefault: () => { },
+                        clientX: clientX,
+                        clientY: clientY,
+                        target: selection.anchorNode.parentElement || document.body,
+                        isSynthetic: true
+                    };
+                    this.handleContextMenu(mockEvent);
+                } catch (err) {
+                    console.error("CRCM: Failed to calculate selection rect", err);
+                }
+            }
+        }, 50);
+    }
+
+    handleTouchStart(e) {
+        if (this.isMenuVisible) this.touchStartY = e.touches[0].clientY;
+    }
+    handleTouchMove(e) {
+        if (this.isMenuVisible) {
+            const touchY = e.touches[0].clientY;
+            if (Math.abs(touchY - this.touchStartY) > 5) this.hideMenu();
+        }
+    }
+    handleKeydown(e) {
+        if (e.key === 'Escape' && this.isMenuVisible) this.hideMenu();
+    }
+
+    hideMenu() {
+        if (this.isAnimating || !this.customMenu) return;
+        this.clearTimers();
+        this.isAnimating = true;
+        this.isOpening = false;
+
+        this.shadowRoot.querySelectorAll('.sub-menu').forEach(sm => sm.remove());
+
+        this.customMenu.classList.remove('visible');
+        this.customMenu.classList.add('hiding');
+        this.hideMenuTimer = setTimeout(() => {
+            if (!this.customMenu) return;
+            this.customMenu.style.display = 'none';
+            this.customMenu.classList.remove('hiding');
+            this.customMenu.style.left = 'auto';
+            this.customMenu.style.top = 'auto';
+            this.isAnimating = false;
+            this.isMenuVisible = false;
+            this.currentLinkUrl = null;
+            this.currentImageUrl = null;
+            this.selectedText = '';
+            this.hideMenuTimer = null;
+        }, 150);
+    }
+}
+
+if (!customElements.get('custom-right-click-menu')) {
+    customElements.define('custom-right-click-menu', CustomRightClickMenu);
+}
+
 
 // 菜单项回调函数写在下面---开始：
-const copyAction=e=>{e.selectedText&&(navigator.clipboard?navigator.clipboard.writeText(e.selectedText).catch((()=>fallbackCopyText(e.selectedText))):fallbackCopyText(e.selectedText))},pasteAction=e=>{const t=e.target;if(!t||"INPUT"!==t.tagName&&"TEXTAREA"!==t.tagName&&!t.isContentEditable)return;const o=document.activeElement===t;o||t.focus(),navigator.clipboard?navigator.clipboard.readText().then((e=>{insertTextAtCursor(t,e),o||t.blur()})).catch((()=>fallbackPasteText(t))):fallbackPasteText(t)},insertTextAtCursor=(e,t)=>{if("function"==typeof e.execCommand)document.execCommand("insertText",!1,t);else if(e.setRangeText){const o=e.selectionStart,c=e.selectionEnd;e.setRangeText(t,o,c,"end");const n=o+t.length;e.selectionStart=n,e.selectionEnd=n}else if(e.createTextRange){const o=e.createTextRange();o.collapse(!0),o.text=t,o.moveStart("character",-t.length),o.select()}},fallbackCopyText=e=>{const t=document.createElement("textarea");t.value=e,t.style.position="fixed",t.style.opacity="0",document.body.appendChild(t),t.select(),document.execCommand("copy"),document.body.removeChild(t)},fallbackPasteText=e=>{const t=document.createElement("textarea");t.style.position="fixed",t.style.opacity="0",document.body.appendChild(t),t.focus(),document.execCommand("paste"),insertTextAtCursor(e,t.value),document.body.removeChild(t)},openInNewTabAction=e=>{e.currentLinkUrl&&window.open(e.currentLinkUrl,"_blank")},copyLinkAction=e=>{e.currentLinkUrl&&navigator.clipboard?.writeText(e.currentLinkUrl).catch((()=>fallbackCopyText(e.currentLinkUrl)))},backAction=()=>{window.history.back()},refreshAction=()=>{location.reload()},backToHomeAction=()=>{window.location.href="/"},openImageInNewTabAction=e=>{e.currentImageUrl&&window.open(e.currentImageUrl,"_blank")},copyImageUrlAction=e=>{e.currentImageUrl&&navigator.clipboard?.writeText(e.currentImageUrl).catch((()=>fallbackCopyText(e.currentImageUrl)))},fullscreenModeAction=e=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()},copyWebsiteUrlAction=e=>{const t=document.createElement("textarea");t.value=e,document.body.appendChild(t),t.select(),document.execCommand("copy"),document.body.removeChild(t)},scrollToBottomAction=()=>{window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"})},testAction=e=>{alert("我是测试")};
+const copyAction = (ctx) => {
+    if (ctx.selectedText) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(ctx.selectedText).catch(() => fallbackCopyText(ctx.selectedText));
+        } else {
+            fallbackCopyText(ctx.selectedText);
+        }
+    }
+};
+const pasteAction = (ctx) => {
+    const targetElement = ctx.target;
+    if (!targetElement || !(targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA' || targetElement.isContentEditable)) {
+        return;
+    }
+    const wasFocused = document.activeElement === targetElement;
+    if (!wasFocused) targetElement.focus();
+    if (navigator.clipboard) {
+        navigator.clipboard.readText().then((text) => {
+            insertTextAtCursor(targetElement, text);
+            if (!wasFocused) targetElement.blur();
+        }).catch(() => fallbackPasteText(targetElement));
+    } else {
+        fallbackPasteText(targetElement);
+    }
+};
+const insertTextAtCursor = (element, text) => {
+    if (typeof element.execCommand === 'function') {
+        document.execCommand('insertText', false, text);
+    } else if (element.setRangeText) {
+        const start = element.selectionStart;
+        const end = element.selectionEnd;
+        element.setRangeText(text, start, end, 'end');
+        const pos = start + text.length;
+        element.selectionStart = pos;
+        element.selectionEnd = pos;
+    } else if (element.createTextRange) {
+        const range = element.createTextRange();
+        range.collapse(true);
+        range.text = text;
+        range.moveStart('character', -text.length);
+        range.select();
+    }
+};
+const fallbackCopyText = (text) => {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+};
+const fallbackPasteText = (targetElement) => {
+    const textarea = document.createElement('textarea');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    document.execCommand('paste');
+    insertTextAtCursor(targetElement, textarea.value);
+    document.body.removeChild(textarea);
+};
+const openInNewTabAction = (ctx) => {
+    if (ctx.currentLinkUrl) window.open(ctx.currentLinkUrl, '_blank');
+};
+const copyLinkAction = (ctx) => {
+    if (ctx.currentLinkUrl) {
+        navigator.clipboard?.writeText(ctx.currentLinkUrl).catch(() => fallbackCopyText(ctx.currentLinkUrl));
+    }
+};
+const backAction = () => {
+    window.history.back();
+};
+const refreshAction = () => {
+    location.reload();
+};
+const backToHomeAction = () => {
+    window.location.href = '/';
+};
+const openImageInNewTabAction = (ctx) => {
+    if (ctx.currentImageUrl) window.open(ctx.currentImageUrl, '_blank');
+};
+const copyImageUrlAction = (ctx) => {
+    if (ctx.currentImageUrl) {
+        navigator.clipboard?.writeText(ctx.currentImageUrl).catch(() => fallbackCopyText(ctx.currentImageUrl));
+    }
+};
+const fullscreenModeAction = (ctx) => {
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        document.documentElement.requestFullscreen();
+    }
+};
+const copyWebsiteUrlAction = (text) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+};
+const scrollToBottomAction = () => {
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+    });
+};
+const testAction = (ctx) => {
+    alert('我是测试');
+};
 // 菜单项回调函数写在下面--结束
+
 
 const createRightClickMenu = () => {
     // 自定义主题配置和外部样式
@@ -56,73 +809,151 @@ const createRightClickMenu = () => {
 
     // 注册默认菜单配置
     menu.registerSchema({
-    selector: 'default',
-    groups: [
-        {
-            id: 'general',
-            name: 'General',
-            order: 10,
-            items: [
-                {id: 'back', label: 'Back', icon: 'fa-arrow-left', callback: backAction, context: () => true},
-                {id: 'refresh', label: 'Refresh', icon: 'fa-refresh', callback: refreshAction, context: () => true}
-            ]
-        },
-        {
-            id: 'edit',
-            name: 'Edit',
-            order: 20,
-            items: [
-                {id: 'copy', label: 'Copy', icon: 'fa-copy', callback: copyAction, context: (ctx) => ctx.selectedText.trim().length > 0 || ctx.isInputFocused},
-                {id: 'paste', label: 'Paste', icon: 'fa-paste', callback: pasteAction, context: (ctx) => ctx.isInputFocused && (ctx.target.tagName === 'INPUT' || ctx.target.tagName === 'TEXTAREA' || ctx.target.isContentEditable)}
-            ]
-        },
-        {
-            id: 'link',
-            name: 'Link',
-            order: 30,
-            items: [
-                {id: 'open-in-new-tab', label: 'Open New Tab', icon: 'fa-external-link', callback: openInNewTabAction, context: (ctx) => !!ctx.currentLinkUrl && !ctx.currentLinkUrl.startsWith('javascript:')},
-                {id: 'copy-link', label: 'Copy Link', icon: 'fa-link', callback: copyLinkAction, context: (ctx) => !!ctx.currentLinkUrl && !ctx.currentLinkUrl.startsWith('javascript:')}
-            ]
-        },
-        {
-            id: 'image',
-            name: 'Image',
-            order: 40,
-            items: [
-                {id: 'open-image-in-new-tab', label: 'Open Image New Tab', icon: 'fa-external-link', callback: openImageInNewTabAction, context: (ctx) => !!ctx.currentImageUrl && !ctx.currentImageUrl.startsWith('data:')},
-                {id: 'copy-image-link', label: 'Copy Image URL', icon: 'fa-link', callback: copyImageUrlAction, context: (ctx) => !!ctx.currentImageUrl && !ctx.currentImageUrl.startsWith('data:')}
-            ]
-        },
-        {
-            id: 'other',
-            name: 'Others',
-            order: 50,
-            items: [
-                {
-                    id: 'more',
-                    label: 'More',
-                    icon: 'fa-ellipsis-h',
-                    children: [
-                        {id: 'sub-1', label: 'Copy Current URL', icon: 'fa-globe', callback: () => copyWebsiteUrlAction(window.location.href)},
-                        {id: 'sub-2', label: 'Toggle Fullscreen', icon: 'fa-expand-arrows-alt', callback: fullscreenModeAction},
-                        {id: 'sub-3', label: 'Scroll to Bottom', icon: 'fa-arrow-down', callback: () => scrollToBottomAction()},
-                        {
-                            id: 'sub-3',
-                            label: 'Deep Nested',
-                            icon: 'fa-layer-group',
-                            children: [
-                                {id: 'deep-1', label: 'L3 Item-1', icon: 'fa-file-alt', callback: () => alert('Text from L3 Item-1')},
-                                {id: 'deep-2', label: 'L3 Item-2', icon: 'fa-file-alt', callback: () => alert('Text from L3 Item-2')}
-                            ]
-                        }
-                    ]
-                },
-                {id: 'back-to-home', label: 'Back to Home', icon: 'fa-home', callback: backToHomeAction, context: () => true}
-            ]
-        }
-    ]
-});
+        selector: 'default',
+        groups: [
+            {
+                id: 'general',
+                name: '常规操作',
+                order: 10,
+                items: [
+                    {
+                        id: 'back',
+                        label: '返回',
+                        icon: 'fa-arrow-left',
+                        callback: backAction, context: () => true
+                    },
+                    {
+                        id: 'refresh',
+                        label: '刷新',
+                        icon: 'fa-refresh',
+                        callback: refreshAction, context: () => true
+                    }
+                ]
+            },
+            {
+                id: 'edit',
+                name: '编辑操作',
+                order: 20,
+                items: [
+                    {
+                        id: 'copy',
+                        label: '复制',
+                        icon: 'fa-copy',
+                        callback: copyAction,
+                        context: (ctx) => ctx.selectedText.trim().length > 0 || ctx.isInputFocused
+                    },
+                    {
+                        id: 'paste',
+                        label: '粘贴',
+                        icon: 'fa-paste',
+                        callback: pasteAction,
+                        context: (ctx) => ctx.isInputFocused && (ctx.target.tagName === 'INPUT' || ctx.target.tagName === 'TEXTAREA' || ctx.target.isContentEditable)
+                    }
+                ]
+            },
+            {
+                id: 'link',
+                name: '链接操作',
+                order: 30,
+                items: [
+                    {
+                        id: 'open-in-new-tab',
+                        label: '在新标签页打开',
+                        icon: 'fa-external-link',
+                        callback: openInNewTabAction,
+                        context: (ctx) => !!ctx.currentLinkUrl && !ctx.currentLinkUrl.startsWith('javascript:')
+                    },
+                    {
+                        id: 'copy-link',
+                        label: '复制链接地址',
+                        icon: 'fa-link',
+                        callback: copyLinkAction,
+                        context: (ctx) => !!ctx.currentLinkUrl && !ctx.currentLinkUrl.startsWith('javascript:')
+                    }
+                ]
+            },
+            {
+                id: 'image',
+                name: '图片操作',
+                order: 40,
+                items: [
+                    {
+                        id: 'open-image-in-new-tab',
+                        label: '在新标签页打开',
+                        icon: 'fa-external-link',
+                        callback: openImageInNewTabAction,
+                        context: (ctx) => !!ctx.currentImageUrl && !ctx.currentImageUrl.startsWith('data:')
+                    },
+                    {
+                        id: 'copy-image-link',
+                        label: '复制图片地址',
+                        icon: 'fa-link',
+                        callback: copyImageUrlAction,
+                        context: (ctx) => !!ctx.currentImageUrl && !ctx.currentImageUrl.startsWith('data:')
+                    }
+                ]
+            },
+            {
+                id: 'other',
+                name: '其他操作',
+                order: 50,
+                items: [
+                    {
+                        id: 'more',
+                        label: '更多功能',
+                        icon: 'fa-ellipsis-h',
+                        // 多级嵌套子菜单
+                        children: [
+                            {
+                                id: 'sub-1',
+                                label: '复制当前链接',
+                                icon: 'fa-globe',
+                                callback: () => copyWebsiteUrlAction(window.location.href)
+                            },
+                            {
+                                id: 'sub-2',
+                                label: '全屏模式开关',
+                                icon: 'fa-expand-arrows-alt',
+                                callback: fullscreenModeAction
+                            },
+                            {
+                                id: 'sub-3',
+                                label: '滚动到最底部',
+                                icon: 'fa-arrow-down',
+                                callback: () => scrollToBottomAction()
+                            },
+                            {
+                                id: 'sub-3',
+                                label: '深层嵌套项',
+                                icon: 'fa-layer-group',
+                                children: [
+                                    {
+                                        id: 'deep-1',
+                                        label: '三级菜单项-1',
+                                        icon: 'fa-file-alt',
+                                        callback: () => alert('来自三级菜单项-1的示例文本')
+                                    },
+                                    {
+                                        id: 'deep-2',
+                                        label: '三级菜单项-2',
+                                        icon: 'fa-file-alt',
+                                        callback: () => alert('来自三级菜单项-2的示例文本')
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 'back-to-home',
+                        label: '返回主页',
+                        icon: 'fa-home',
+                        callback: backToHomeAction,
+                        context: () => true
+                    }
+                ]
+            }
+        ]
+    });
 
     if (!document.body.contains(menu)) {
         document.body.appendChild(menu);
