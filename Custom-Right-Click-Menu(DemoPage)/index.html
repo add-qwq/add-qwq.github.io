@@ -293,7 +293,7 @@
     </div>
 
     <!-- <script src="CRCMenu.v2.js?v=53"></script> -->
-    <script src="CRCM.V3-B-Test-Temporary-2.js?v=7"></script>
+    <script src="CRCM.V3-B-Test-Temporary-2.js?v=15"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
@@ -304,21 +304,25 @@
                 '--menu-border': '1px solid rgba(255, 255, 255, 0.05)',
                 '--menu-backdrop': 'blur(10px)',
                 '--transition-speed': '0.1s',
-                '--item-hover-bg': 'rgba(255, 255, 255, 0.3)',
+                '--item-hover-bg': 'rgba(255, 255, 255, 0.22)',
+                '--item-transition-speed': '0.2s',
                 '--text-color': 'white',
                 '--header-color': 'white',
-                '--divider-color': '#e5e7eb'
+                '--divider-color': '#e5e7eb',
             };
 
             const defaultTheme = {
                 '--menu-bg': 'rgba(255, 255, 255, 1)',
                 '--menu-border': '1px solid rgba(0, 0, 0, 0.1)',
                 '--menu-backdrop': 'blur(10px)',
-                '--transition-speed': '0.1s',
+                '--menu-shadow': '0 6px 15px -3px rgba(0, 0, 0, 0.08)',
                 '--item-hover-bg': '#f3f4f6',
+                '--item-transition-speed': '0.2s',
                 '--text-color': '#6b7280',
                 '--header-color': '#9ca3af',
-                '--divider-color': '#e5e7eb'
+                '--divider-color': '#e5e7eb',
+                '--transition-speed': '0.1s',
+                '--arrow-margin-left': 'auto',
             };
 
             let isGlassThemeActive = false;
